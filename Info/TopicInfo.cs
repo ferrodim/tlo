@@ -29,7 +29,7 @@ namespace TLO.local
     {
       get
       {
-        return HttpUtility.HtmlDecode(this.Name2);
+        return (this.Name2);
       }
     }
 

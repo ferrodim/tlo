@@ -19,7 +19,7 @@ namespace TLO.local
         Settings current = Settings.Current;
         ClientLocalDB.Current.GetCategoriesEnable();
         Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(false);
+        Application.SetCompatibleTextRenderingDefault(true);
         Application.Run((Form) new MainForm());
       }
       catch (Exception ex)

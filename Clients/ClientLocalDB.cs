@@ -4,22 +4,22 @@
 // MVID: E76CFDB0-1920-4151-9DD8-5FF51DE7CC23
 // Assembly location: C:\Users\root\Downloads\TLO_2.6.2.21\TLO.local.exe
 
-using NLog;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Mono.Data.Sqlite;
+using NLog;
 
 namespace TLO.local
 {
   internal class ClientLocalDB
   {
     private static ClientLocalDB _current;
-    private SQLiteConnection _conn;
+    private SqliteConnection _conn;
     private static Logger _logger;
 
     public static ClientLocalDB Current
@@ -72,10 +72,10 @@ namespace TLO.local
       {
         if (File.Exists(this.FileDatabase + ".tmp"))
           File.Delete(this.FileDatabase + ".tmp");
-        using (SQLiteConnection destination = new SQLiteConnection(string.Format("Data Source={0};Version=3;", (object) (this.FileDatabase + ".tmp"))))
+        using (SqliteConnection destination = new SqliteConnection(string.Format("Data Source={0};Version=3;", (object) (this.FileDatabase + ".tmp"))))
         {
           destination.Open();
-          this._conn.BackupDatabase(destination, "main", "main", -1, null, -1);
+//          this._conn.BackupDatabase(destination, "main", "main", -1, null, -1);
           destination.Close();
         }
       }
@@ -98,7 +98,7 @@ namespace TLO.local
       if (File.Exists(this.FileDatabase))
         File.Delete(this.FileDatabase);
       _conn = new DBConnectionCreator().Connection;
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "\r\nCREATE TABLE Category(CategoryID INTEGER PRIMARY KEY ASC, ParentID INTEGER, OrderID INT, Name TEXT NOT NULL, FullName TEXT NOT NULL, IsEnable BIT, CountSeeders int, \r\n    TorrentClientUID TEXT, Folder TEXT, AutoDownloads INT, LastUpdateTopics DATETIME, LastUpdateStatus DATETIME, Label TEXT, ReportTopicID INT);\r\nCREATE TABLE Topic (TopicID INT PRIMARY KEY ASC, CategoryID INT, Name TEXT, Hash TEXT, Size INTEGER, Seeders INT, AvgSeeders DECIMAL(18,4), Status INT, IsActive BIT, IsDeleted BIT, IsKeep BIT, IsKeepers BIT, IsBlackList BIT, IsDownload BIT, RegTime DATETIME, PosterID INT);\r\nCREATE INDEX IX_Topic__Hash ON Topic (Hash);\r\nCREATE TABLE TopicStatusHystory (TopicID INT NOT NULL, Date DateTime NOT NULL, Seeders INT, PRIMARY KEY(TopicID ASC, Date ASC));\r\nCREATE TABLE TorrentClient(UID NVARCHAR(50) PRIMARY KEY ASC NOT NULL, Name NVARCHAR(100) NOT NULL, Type VARCHAR(50) NOT NULL, ServerName NVARCHAR(50) NOT NULL, ServerPort INT NOT NULL, UserName NVARCHAR(50), UserPassword NVARCHAR(50), LastReadHash DATETIME);\r\nCREATE TABLE Report(CategoryID INT NOT NULL, ReportNo INT NOT NULL, URL TEXT, Report TEXT, PRIMARY KEY(CategoryID ASC, ReportNo ASC));\r\nCREATE TABLE Keeper (KeeperName nvarchar(100) not null, CategoryID int not null, Count INT NOT NULL, Size DECIMAL(18,4) NOT NULL, PRIMARY KEY(KeeperName ASC, CategoryID ASC));\r\nCREATE TABLE KeeperToTopic(KeeperName NVARCHAR(50) NOT NULL, CategoryID INT NULL, TopicID INT NOT NULL, PRIMARY KEY(KeeperName ASC, TopicID ASC));\r\nCREATE TABLE User (UserID INT PRIMARY KEY ASC NOT NULL, Name NVARCHAR(100) NOT NULL);\r\n";
         command.ExecuteNonQuery();
@@ -107,9 +107,9 @@ namespace TLO.local
 
     public void ClearDatabase()
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           HashSet<int> intSet = new HashSet<int>();
           command.Transaction = sqLiteTransaction;
@@ -121,7 +121,7 @@ namespace TLO.local
           command.ExecuteNonQuery();
         }
         sqLiteTransaction.Commit();
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.CommandText = "vacuum;";
           command.ExecuteNonQuery();
@@ -162,16 +162,16 @@ namespace TLO.local
     public IEnumerable<UserInfo> GetUsers()
     {
       List<UserInfo> userInfoList = new List<UserInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "SELECT * FROM User";
-        using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+        using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
         {
-          while (sqLiteDataReader.Read())
+          while (SqliteDataReader.Read())
             userInfoList.Add(new UserInfo()
             {
-              UserID = sqLiteDataReader.GetInt32(0),
-              Name = sqLiteDataReader.GetString(1)
+              UserID = SqliteDataReader.GetInt32(0),
+              Name = SqliteDataReader.GetString(1)
             });
         }
       }
@@ -182,9 +182,9 @@ namespace TLO.local
     {
       if (data == null || data.Count<UserInfo>() == 0)
         return;
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "INSERT OR REPLACE INTO User(UserID, Name) VALUES(@UserID, @Name);";
@@ -205,14 +205,14 @@ namespace TLO.local
     public int[] GetNoUsers()
     {
       List<int> intList = new List<int>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "\r\nSELECT DISTINCT t.PosterID\r\nFROM \r\n     Topic AS t     \r\n     LEFT JOIN User AS u ON (t.PosterID = u.UserID)     \r\nWHERE\r\n     t.PosterID IS NOT NULL AND u.Name IS NULL";
-        using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+        using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
         {
-          while (sqLiteDataReader.Read())
+          while (SqliteDataReader.Read())
           {
-            var posterId = sqLiteDataReader.GetInt32(0);
+            var posterId = SqliteDataReader.GetInt32(0);
             if (posterId > 0)
             {
               intList.Add(posterId);
@@ -225,17 +225,17 @@ namespace TLO.local
 
     public void CategoriesSave(IEnumerable<Category> data, bool isLoad = false)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           HashSet<int> hash = new HashSet<int>();
           command.Transaction = sqLiteTransaction;
           command.CommandText = string.Format("select CategoryID FROM Category WHERE CategoryID IN ({0})", (object) string.Join<int>(",", data.Select<Category, int>((Func<Category, int>) (x => x.CategoryID))));
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+          using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
           {
-            while (sqLiteDataReader.Read())
-              hash.Add(sqLiteDataReader.GetInt32(0));
+            while (SqliteDataReader.Read())
+              hash.Add(SqliteDataReader.GetInt32(0));
           }
           if (isLoad)
           {
@@ -299,29 +299,29 @@ namespace TLO.local
     public List<Category> GetCategories()
     {
       List<Category> categoryList = new List<Category>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "\r\nSELECT CategoryID, ParentID, OrderID, Name, FullName, IsEnable, Folder, LastUpdateTopics, LastUpdateStatus, CountSeeders, TorrentClientUID, ReportTopicID, Label FROM Category";
-        using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+        using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
         {
-          while (sqLiteDataReader.Read())
+          while (SqliteDataReader.Read())
           {
             Category category = new Category()
             {
-              CategoryID = sqLiteDataReader.GetInt32(0),
-              ParentID = sqLiteDataReader.GetInt32(1),
-              OrderID = sqLiteDataReader.GetInt32(2),
-              Name = sqLiteDataReader.GetString(3),
-              FullName = sqLiteDataReader.GetString(4),
-              IsEnable = sqLiteDataReader.GetBoolean(5),
-              CountSeeders = sqLiteDataReader.IsDBNull(9) ? 2 : sqLiteDataReader.GetInt32(9),
-              TorrentClientUID = sqLiteDataReader.IsDBNull(10) ? Guid.Empty : Guid.Parse(sqLiteDataReader.GetString(10)),
-              LastUpdateTopics = sqLiteDataReader.GetDateTime(7),
-              LastUpdateStatus = sqLiteDataReader.GetDateTime(8),
-              ReportList = sqLiteDataReader.IsDBNull(11) ? string.Empty : sqLiteDataReader.GetString(11),
-              Label = sqLiteDataReader.IsDBNull(12) ? string.Empty : sqLiteDataReader.GetString(12)
+              CategoryID = SqliteDataReader.GetInt32(0),
+              ParentID = SqliteDataReader.GetInt32(1),
+              OrderID = SqliteDataReader.GetInt32(2),
+              Name = SqliteDataReader.GetString(3),
+              FullName = SqliteDataReader.GetString(4),
+              IsEnable = SqliteDataReader.GetBoolean(5),
+              CountSeeders = SqliteDataReader.IsDBNull(9) ? 2 : SqliteDataReader.GetInt32(9),
+              TorrentClientUID = SqliteDataReader.IsDBNull(10) ? Guid.Empty : Guid.Parse(SqliteDataReader.GetString(10)),
+              LastUpdateTopics = SqliteDataReader.GetDateTime(7),
+              LastUpdateStatus = SqliteDataReader.GetDateTime(8),
+              ReportList = SqliteDataReader.IsDBNull(11) ? string.Empty : SqliteDataReader.GetString(11),
+              Label = SqliteDataReader.IsDBNull(12) ? string.Empty : SqliteDataReader.GetString(12)
             };
-            string str = sqLiteDataReader.IsDBNull(6) ? (string) null : sqLiteDataReader.GetString(6);
+            string str = SqliteDataReader.IsDBNull(6) ? (string) null : SqliteDataReader.GetString(6);
             if (!string.IsNullOrWhiteSpace(str))
             {
               string[] strArray = str.Split('|');
@@ -350,28 +350,28 @@ namespace TLO.local
     public List<Category> GetCategoriesEnable()
     {
       List<Category> categoryList = new List<Category>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "\r\nSELECT CategoryID, ParentID, OrderID, Name, FullName, IsEnable, Folder, LastUpdateTopics, LastUpdateStatus, CountSeeders, TorrentClientUID, Label FROM Category WHERE IsEnable = 1 ORDER BY FullName";
-        using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+        using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
         {
-          while (sqLiteDataReader.Read())
+          while (SqliteDataReader.Read())
           {
             Category category = new Category()
             {
-              CategoryID = sqLiteDataReader.GetInt32(0),
-              ParentID = sqLiteDataReader.GetInt32(1),
-              OrderID = sqLiteDataReader.GetInt32(2),
-              Name = sqLiteDataReader.GetString(3),
-              FullName = sqLiteDataReader.GetString(4),
-              IsEnable = sqLiteDataReader.GetBoolean(5),
-              CountSeeders = sqLiteDataReader.IsDBNull(9) ? 2 : sqLiteDataReader.GetInt32(9),
-              TorrentClientUID = sqLiteDataReader.IsDBNull(10) ? Guid.Empty : Guid.Parse(sqLiteDataReader.GetString(10)),
-              LastUpdateTopics = sqLiteDataReader.GetDateTime(7),
-              LastUpdateStatus = sqLiteDataReader.GetDateTime(8),
-              Label = sqLiteDataReader.IsDBNull(11) ? string.Empty : sqLiteDataReader.GetString(11)
+              CategoryID = SqliteDataReader.GetInt32(0),
+              ParentID = SqliteDataReader.GetInt32(1),
+              OrderID = SqliteDataReader.GetInt32(2),
+              Name = SqliteDataReader.GetString(3),
+              FullName = SqliteDataReader.GetString(4),
+              IsEnable = SqliteDataReader.GetBoolean(5),
+              CountSeeders = SqliteDataReader.IsDBNull(9) ? 2 : SqliteDataReader.GetInt32(9),
+              TorrentClientUID = SqliteDataReader.IsDBNull(10) ? Guid.Empty : Guid.Parse(SqliteDataReader.GetString(10)),
+              LastUpdateTopics = SqliteDataReader.GetDateTime(7),
+              LastUpdateStatus = SqliteDataReader.GetDateTime(8),
+              Label = SqliteDataReader.IsDBNull(11) ? string.Empty : SqliteDataReader.GetString(11)
             };
-            string str = sqLiteDataReader.IsDBNull(6) ? (string) null : sqLiteDataReader.GetString(6);
+            string str = SqliteDataReader.IsDBNull(6) ? (string) null : SqliteDataReader.GetString(6);
             if (!string.IsNullOrWhiteSpace(str))
             {
               string[] strArray = str.Split('|');
@@ -399,7 +399,7 @@ namespace TLO.local
 
     public void ResetFlagsTopicDownloads()
     {
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "UPDATE Topic SET IsKeep = 0, IsDownload = 0";
         command.ExecuteNonQuery();
@@ -409,9 +409,9 @@ namespace TLO.local
     public void SaveTopicInfo(List<TopicInfo> data, bool isUpdateTopic = false)
     {
       DateTime dateTime = new DateTime(2000, 1, 1);
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           if (isUpdateTopic)
@@ -427,10 +427,10 @@ namespace TLO.local
           }
           command.CommandText = string.Format("SELECT TopicID FROM Topic WHERE TopicID IN ({0})", (object) string.Join<int>(",", data.Select<TopicInfo, int>((Func<TopicInfo, int>) (x => x.TopicID))));
           List<int> list = new List<int>();
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+          using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
           {
-            while (sqLiteDataReader.Read())
-              list.Add(sqLiteDataReader.GetInt32(0));
+            while (SqliteDataReader.Read())
+              list.Add(SqliteDataReader.GetInt32(0));
           }
           if (isUpdateTopic)
           {
@@ -508,9 +508,9 @@ namespace TLO.local
 
     internal void DeleteTopicsByCategoryId(int categoryID)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.Parameters.AddWithValue("@categoryID", (object) categoryID);
@@ -523,9 +523,9 @@ namespace TLO.local
 
     public void ClearHistoryStatus()
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.Parameters.Add("@Date", DbType.DateTime);
@@ -539,9 +539,9 @@ namespace TLO.local
 
     public void SaveStatus(int[][] data, bool isUpdateStatus = false)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "\r\nUPDATE Topic SET Seeders = @Seeders WHERE TopicID = @TopicID;\r\nINSERT OR REPLACE INTO TopicStatusHystory VALUES(@TopicID, @Date, @Seeders);\r\n";
@@ -567,29 +567,29 @@ namespace TLO.local
     {
       DateTime dateTime = new DateTime(2000, 1, 1);
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "SELECT TopicID, CategoryID, Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, PosterID\r\nFROM Topic WHERE (CategoryID = @CategoryID OR @CategoryID = -1) AND IsDeleted = 0 AND Status NOT IN (7,4,11,5) and Hash IS NOT NULL";
         command.Parameters.AddWithValue("@CategoryID", (object) categoyid);
-        using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+        using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
         {
-          while (sqLiteDataReader.Read())
+          while (SqliteDataReader.Read())
             topicInfoList.Add(new TopicInfo()
             {
-              TopicID = sqLiteDataReader.GetInt32(0),
-              CategoryID = sqLiteDataReader.GetInt32(1),
-              Name2 = sqLiteDataReader.GetString(2),
-              Hash = sqLiteDataReader.GetString(3),
-              Size = sqLiteDataReader.GetInt64(4),
-              Seeders = sqLiteDataReader.GetInt32(5),
-              Status = sqLiteDataReader.GetInt32(6),
-              IsKeep = sqLiteDataReader.GetBoolean(9),
-              IsKeeper = sqLiteDataReader.GetBoolean(10),
-              IsBlackList = sqLiteDataReader.GetBoolean(11),
-              IsDownload = sqLiteDataReader.GetBoolean(12),
-              AvgSeeders = sqLiteDataReader.IsDBNull(13) ? new Decimal?() : new Decimal?(sqLiteDataReader.GetDecimal(13)),
-              RegTime = sqLiteDataReader.IsDBNull(14) ? dateTime : sqLiteDataReader.GetDateTime(14),
-              PosterID = sqLiteDataReader.IsDBNull(15) ? 0 : sqLiteDataReader.GetInt32(15)
+              TopicID = SqliteDataReader.GetInt32(0),
+              CategoryID = SqliteDataReader.GetInt32(1),
+              Name2 = SqliteDataReader.GetString(2),
+              Hash = SqliteDataReader.GetString(3),
+              Size = SqliteDataReader.GetInt64(4),
+              Seeders = SqliteDataReader.GetInt32(5),
+              Status = SqliteDataReader.GetInt32(6),
+              IsKeep = SqliteDataReader.GetBoolean(9),
+              IsKeeper = SqliteDataReader.GetBoolean(10),
+              IsBlackList = SqliteDataReader.GetBoolean(11),
+              IsDownload = SqliteDataReader.GetBoolean(12),
+              AvgSeeders = SqliteDataReader.IsDBNull(13) ? new Decimal?() : new Decimal?(SqliteDataReader.GetDecimal(13)),
+              RegTime = SqliteDataReader.IsDBNull(14) ? dateTime : SqliteDataReader.GetDateTime(14),
+              PosterID = SqliteDataReader.IsDBNull(15) ? 0 : SqliteDataReader.GetInt32(15)
             });
         }
       }
@@ -600,29 +600,29 @@ namespace TLO.local
     {
       DateTime dateTime = new DateTime(2000, 1, 1);
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "SELECT TopicID, CategoryID, Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, PosterID\r\nFROM Topic WHERE (CategoryID = @CategoryID OR @CategoryID = -1) and Hash is null";
         command.Parameters.AddWithValue("@CategoryID", (object) categoyid);
-        using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+        using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
         {
-          while (sqLiteDataReader.Read())
+          while (SqliteDataReader.Read())
             topicInfoList.Add(new TopicInfo()
             {
-              TopicID = sqLiteDataReader.GetInt32(0),
-              CategoryID = sqLiteDataReader.GetInt32(1),
-              Name2 = sqLiteDataReader.GetString(2),
-              Hash = sqLiteDataReader.GetString(3),
-              Size = sqLiteDataReader.GetInt64(4),
-              Seeders = sqLiteDataReader.GetInt32(5),
-              Status = sqLiteDataReader.GetInt32(6),
-              IsKeep = sqLiteDataReader.GetBoolean(9),
-              IsKeeper = sqLiteDataReader.GetBoolean(10),
-              IsBlackList = sqLiteDataReader.GetBoolean(11),
-              IsDownload = sqLiteDataReader.GetBoolean(12),
-              AvgSeeders = sqLiteDataReader.IsDBNull(13) ? new Decimal?() : new Decimal?(sqLiteDataReader.GetDecimal(13)),
-              RegTime = sqLiteDataReader.IsDBNull(14) ? dateTime : sqLiteDataReader.GetDateTime(14),
-              PosterID = sqLiteDataReader.IsDBNull(15) ? 0 : sqLiteDataReader.GetInt32(15)
+              TopicID = SqliteDataReader.GetInt32(0),
+              CategoryID = SqliteDataReader.GetInt32(1),
+              Name2 = SqliteDataReader.GetString(2),
+              Hash = SqliteDataReader.GetString(3),
+              Size = SqliteDataReader.GetInt64(4),
+              Seeders = SqliteDataReader.GetInt32(5),
+              Status = SqliteDataReader.GetInt32(6),
+              IsKeep = SqliteDataReader.GetBoolean(9),
+              IsKeeper = SqliteDataReader.GetBoolean(10),
+              IsBlackList = SqliteDataReader.GetBoolean(11),
+              IsDownload = SqliteDataReader.GetBoolean(12),
+              AvgSeeders = SqliteDataReader.IsDBNull(13) ? new Decimal?() : new Decimal?(SqliteDataReader.GetDecimal(13)),
+              RegTime = SqliteDataReader.IsDBNull(14) ? dateTime : SqliteDataReader.GetDateTime(14),
+              PosterID = SqliteDataReader.IsDBNull(15) ? 0 : SqliteDataReader.GetInt32(15)
             });
         }
       }
@@ -633,10 +633,10 @@ namespace TLO.local
     {
       DateTime dateTime = new DateTime(2000, 1, 1);
       List<TopicInfo> topicInfoList = new List<TopicInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = @"
-SELECT t.TopicID, t.CategoryID, t.Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, CAST(CASE WHEN @UserName = u.Name THEN 1 ELSE 0 END AS BIT), 
+SELECT DISTINCT t.TopicID, t.CategoryID, t.Name, Hash, Size, Seeders, Status, IsActive, IsDeleted, IsKeep, IsKeepers, IsBlackList, IsDownload, AvgSeeders, RegTime, CAST(CASE WHEN @UserName = u.Name THEN 1 ELSE 0 END AS BIT), 
 COUNT(kt.TopicID) AS KeepersCount
 FROM Topic AS t    
 LEFT JOIN User AS u ON (t.PosterID = u.UserID)
@@ -667,25 +667,25 @@ WHERE
         command.Parameters.AddWithValue("@CategoryID", (object) categoyid);
         command.Parameters.AddWithValue("@RegTime", (object) regTime);
         command.Parameters.AddWithValue("@UserName", string.IsNullOrWhiteSpace(Settings.Current.KeeperName) ? (object) "-" : (object) Settings.Current.KeeperName);
-        using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+        using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
         {
-          while (sqLiteDataReader.Read())
+          while (SqliteDataReader.Read())
             topicInfoList.Add(new TopicInfo()
             {
-              TopicID = sqLiteDataReader.GetInt32(0),
-              CategoryID = sqLiteDataReader.GetInt32(1),
-              Name2 = sqLiteDataReader.IsDBNull(2) ? string.Empty : sqLiteDataReader.GetString(2),
-              Hash = sqLiteDataReader.IsDBNull(3) ? string.Empty : sqLiteDataReader.GetString(3),
-              Size = sqLiteDataReader.GetInt64(4),
-              Seeders = sqLiteDataReader.GetInt32(5),
-              Status = sqLiteDataReader.GetInt32(6),
-              IsKeep = sqLiteDataReader.GetBoolean(9),
-              KeeperCount = sqLiteDataReader.GetInt32(16),
-              IsBlackList = sqLiteDataReader.GetBoolean(11),
-              IsDownload = sqLiteDataReader.GetBoolean(12),
-              AvgSeeders = sqLiteDataReader.IsDBNull(13) ? new Decimal?() : new Decimal?(Math.Round(sqLiteDataReader.GetDecimal(13), 3)),
-              RegTime = sqLiteDataReader.IsDBNull(14) ? dateTime : sqLiteDataReader.GetDateTime(14),
-              IsPoster = sqLiteDataReader.GetBoolean(15)
+              TopicID = SqliteDataReader.GetInt32(0),
+              CategoryID = SqliteDataReader.GetInt32(1),
+              Name2 = SqliteDataReader.GetString(2),
+              Hash = SqliteDataReader.IsDBNull(3) ? string.Empty : SqliteDataReader.GetString(3),
+              Size = SqliteDataReader.GetInt64(4),
+              Seeders = SqliteDataReader.GetInt32(5),
+              Status = SqliteDataReader.GetInt32(6),
+              IsKeep = SqliteDataReader.GetBoolean(9),
+              KeeperCount = SqliteDataReader.GetInt32(16),
+              IsBlackList = SqliteDataReader.GetBoolean(11),
+              IsDownload = SqliteDataReader.GetBoolean(12),
+              AvgSeeders = SqliteDataReader.IsDBNull(13) ? new Decimal?() : new Decimal?(Math.Round(SqliteDataReader.GetDecimal(13), 3)),
+              RegTime = SqliteDataReader.IsDBNull(14) ? dateTime : SqliteDataReader.GetDateTime(14),
+              IsPoster = SqliteDataReader.GetBoolean(15)
             });
         }
       }
@@ -694,9 +694,9 @@ WHERE
 
     public void SetTorrentClientHash(List<TopicInfo> data)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "UPDATE Topic SET IsDownload = @IsDownload, IsKeep = @IsKeep WHERE Hash = @Hash;";
@@ -716,9 +716,9 @@ WHERE
     public void SaveTorrentClients(IEnumerable<TorrentClientInfo> data, bool isUpdateList = false)
     {
       List<TorrentClientInfo> tc = this.GetTorrentClients();
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           if (isUpdateList)
@@ -770,22 +770,22 @@ WHERE
     public List<TorrentClientInfo> GetTorrentClients()
     {
       List<TorrentClientInfo> torrentClientInfoList = new List<TorrentClientInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "SELECT * FROM TorrentClient";
-        using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+        using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
         {
-          while (sqLiteDataReader.Read())
+          while (SqliteDataReader.Read())
             torrentClientInfoList.Add(new TorrentClientInfo()
             {
-              UID = Guid.Parse(sqLiteDataReader.GetString(0)),
-              Name = sqLiteDataReader.GetString(1),
-              Type = sqLiteDataReader.GetString(2),
-              ServerName = sqLiteDataReader.GetString(3),
-              ServerPort = sqLiteDataReader.GetInt32(4),
-              UserName = sqLiteDataReader.GetString(5),
-              UserPassword = sqLiteDataReader.GetString(6),
-              LastReadHash = sqLiteDataReader.GetDateTime(7)
+              UID = Guid.Parse(SqliteDataReader.GetString(0)),
+              Name = SqliteDataReader.GetString(1),
+              Type = SqliteDataReader.GetString(2),
+              ServerName = SqliteDataReader.GetString(3),
+              ServerPort = SqliteDataReader.GetInt32(4),
+              UserName = SqliteDataReader.GetString(5),
+              UserPassword = SqliteDataReader.GetString(6),
+              LastReadHash = SqliteDataReader.GetDateTime(7)
             });
         }
       }
@@ -796,9 +796,9 @@ WHERE
     {
       if (data == null)
         return;
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandTimeout = 60000;
@@ -829,9 +829,9 @@ WHERE
 
     private void SaveKeepStatus(string keepName, List<Tuple<int, int, Decimal>> data)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "INSERT OR REPLACE INTO Keeper VALUES(@KeeperName, @CategoryID, @Count, @Size)";
@@ -858,9 +858,9 @@ WHERE
 
     public void ClearReports()
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "UPDATE Report SET Report = @Report WHERE ReportNo <> 0";
@@ -875,17 +875,17 @@ WHERE
     {
       List<Tuple<int, string, int, Decimal>> tupleList = new List<Tuple<int, string, int, Decimal>>();
       bool flag = this.GetTorrentClients().Any<TorrentClientInfo>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "INSERT OR REPLACE INTO Keeper SELECT 'All', CategoryID, COUNT(*) Cnt, SUM(Size) / 1073741824.0 Size FROM Topic WHERE IsDeleted = 0 AND CategoryID <> 0 GROUP BY CategoryID;\r\nINSERT OR REPLACE INTO Keeper SELECT kt.KeeperName, kt.CategoryID, COUNT(*),  CAST(SUM(t.Size) / 1073741824.0  AS NUMERIC(18,4)) Size \r\n    FROM KeeperToTopic AS kt JOIN Topic AS t ON (kt.TopicID = t.TopicID AND kt.KeeperName <> @KeeperName) group by kt.KeeperName, kt.CategoryID;\r\nINSERT OR REPLACE INTO Keeper SELECT @KeeperName, CategoryID,  COUNT(*) Cnt, CAST(SUM(Size) / 1073741824.0 AS NUMERIC(18,4)) Size FROM Topic \r\n        WHERE IsDeleted = 0 AND IsKeep = 1 AND (Seeders <= @Seeders OR @Seeders = -1) AND Status NOT IN (7, 4,11,5) AND IsBlackList = 0 GROUP BY CategoryID;\r\n";
         command.Parameters.AddWithValue("@KeeperName", flag ? (object) Settings.Current.KeeperName : (object) "<no>");
         command.Parameters.AddWithValue("@Seeders", (object) Settings.Current.CountSeedersReport);
         command.ExecuteNonQuery();
         command.CommandText = "SELECT KeeperName, CategoryID, Count, Size FROM Keeper";
-        using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+        using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
         {
-          while (sqLiteDataReader.Read())
-            tupleList.Add(new Tuple<int, string, int, Decimal>(sqLiteDataReader.GetInt32(1), sqLiteDataReader.GetString(0), sqLiteDataReader.GetInt32(2), Math.Round(sqLiteDataReader.GetDecimal(3), 3)));
+          while (SqliteDataReader.Read())
+            tupleList.Add(new Tuple<int, string, int, Decimal>(SqliteDataReader.GetInt32(1), SqliteDataReader.GetString(0), SqliteDataReader.GetInt32(2), Math.Round(SqliteDataReader.GetDecimal(3), 3)));
         }
       }
       return tupleList;
@@ -899,9 +899,9 @@ WHERE
         report.Value.Add(num + 1, "Резерв");
         report.Value.Add(num + 2, "Резерв");
       }
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           Dictionary<Tuple<int, int>, Tuple<string, string>> reps = this.GetReports(new int?());
@@ -953,7 +953,7 @@ WHERE
     public Dictionary<Tuple<int, int>, Tuple<string, string>> GetReports(int? categoryID = null)
     {
       Dictionary<Tuple<int, int>, Tuple<string, string>> dictionary = new Dictionary<Tuple<int, int>, Tuple<string, string>>();
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "SELECT * FROM Report";
         if (categoryID.HasValue)
@@ -961,12 +961,12 @@ WHERE
           command.CommandText += " WHERE CategoryID = @CategoryID";
           command.Parameters.AddWithValue("@CategoryID", (object) categoryID.Value);
         }
-        using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+        using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
         {
-          while (sqLiteDataReader.Read())
+          while (SqliteDataReader.Read())
           {
-            if (!dictionary.ContainsKey(new Tuple<int, int>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetInt32(1))))
-              dictionary.Add(new Tuple<int, int>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetInt32(1)), new Tuple<string, string>(sqLiteDataReader.GetString(2), sqLiteDataReader.GetString(3)));
+            if (!dictionary.ContainsKey(new Tuple<int, int>(SqliteDataReader.GetInt32(0), SqliteDataReader.GetInt32(1))))
+              dictionary.Add(new Tuple<int, int>(SqliteDataReader.GetInt32(0), SqliteDataReader.GetInt32(1)), new Tuple<string, string>(SqliteDataReader.GetString(2), SqliteDataReader.GetString(3)));
           }
         }
       }
@@ -975,17 +975,17 @@ WHERE
 
     public void SaveSettingsReport(List<Tuple<int, int, string>> result)
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           command.CommandText = "SELECT DISTINCT CategoryID FROM Report WHERE ReportNo = 0";
           HashSet<int> filter = new HashSet<int>();
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+          using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
           {
-            while (sqLiteDataReader.Read())
-              filter.Add(sqLiteDataReader.GetInt32(0));
+            while (SqliteDataReader.Read())
+              filter.Add(SqliteDataReader.GetInt32(0));
           }
           command.CommandText = "UPDATE Report SET URL = @url WHERE CategoryID = @CategoryID AND ReportNo = @ReportNo";
           command.Parameters.Add("@CategoryID", DbType.Int32);
@@ -1016,9 +1016,9 @@ WHERE
 
     public void UpdateStatistics()
     {
-      using (SQLiteTransaction sqLiteTransaction = this._conn.BeginTransaction())
+      using (SqliteTransaction sqLiteTransaction = this._conn.BeginTransaction())
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           command.Transaction = sqLiteTransaction;
           List<Decimal[]> numArrayList = new List<Decimal[]>();
@@ -1039,7 +1039,7 @@ WHERE
 
     public void ClearKeepers()
     {
-      using (SQLiteCommand command = this._conn.CreateCommand())
+      using (SqliteCommand command = this._conn.CreateCommand())
       {
         command.CommandText = "DELETE FROM Keeper;\r\nDELETE FROM KeeperToTopic;\r\nUPDATE Report SET Report = '' WHERE ReportNo = 0";
         command.ExecuteNonQuery();
@@ -1050,7 +1050,7 @@ WHERE
     {
       try
       {
-        using (SQLiteCommand command = this._conn.CreateCommand())
+        using (SqliteCommand command = this._conn.CreateCommand())
         {
           this.GetStatisticsByAllUsers();
           Dictionary<int, Dictionary<int, string>> reports = new Dictionary<int, Dictionary<int, string>>();
@@ -1059,28 +1059,28 @@ WHERE
           Dictionary<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>> dictionary2 = new Dictionary<Tuple<int, string, int>, Tuple<string, Decimal, Decimal>>();
           List<Tuple<int, int, string, Decimal, Decimal>> tupleList = new List<Tuple<int, int, string, Decimal, Decimal>>();
           command.CommandText = "\r\nSELECT c.CategoryID, c.FullName, SUM(Count)Count, SUM(Size)Size\r\nFROM\r\n    (\r\n       SELECT CategoryID, ParentID FROM Category WHERE ParentID > 1000000 UNION\r\n       SELECT c1.CategoryID, c2.ParentID FROM Category AS c1 JOIN Category AS c2 ON (c1.ParentID = c2.CategoryID) WHERE c2.ParentID > 1000000       \r\n    ) AS t    \r\n    JOIN Category AS c ON (t.ParentID = c.CategoryID)    \r\n    JOIN Keeper AS k ON (k.CategoryID = t.CategoryID AND k.KeeperName <> 'All')\r\nGROUP BY\r\n      c.CategoryID, c.FullName\r\nORDER BY c.FullName";
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+          using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
           {
-            while (sqLiteDataReader.Read())
-              source1.Add(sqLiteDataReader.GetInt32(0), new Tuple<string, Decimal, Decimal>(sqLiteDataReader.GetString(1), sqLiteDataReader.GetDecimal(2), sqLiteDataReader.GetDecimal(3)));
+            while (SqliteDataReader.Read())
+              source1.Add(SqliteDataReader.GetInt32(0), new Tuple<string, Decimal, Decimal>(SqliteDataReader.GetString(1), SqliteDataReader.GetDecimal(2), SqliteDataReader.GetDecimal(3)));
           }
           command.CommandText = "\r\nSELECT c.CategoryID, c.FullName, k.KeeperName, SUM(Count)Count, SUM(Size)Size\r\nFROM\r\n    (\r\n       SELECT CategoryID, ParentID FROM Category WHERE ParentID > 1000000 UNION\r\n       SELECT c1.CategoryID, c2.ParentID FROM Category AS c1 JOIN Category AS c2 ON (c1.ParentID = c2.CategoryID) WHERE c2.ParentID > 1000000       \r\n    ) AS t    \r\n    JOIN Category AS c ON (t.ParentID = c.CategoryID)    \r\n    JOIN Keeper AS k ON (k.CategoryID = t.CategoryID AND k.KeeperName <> 'All')\r\nGROUP BY\r\n      c.CategoryID, c.FullName, k.KeeperName\r\nORDER BY c.FullName, k.KeeperName";
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+          using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
           {
-            while (sqLiteDataReader.Read())
-              dictionary1.Add(new Tuple<int, string>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetString(2)), new Tuple<string, Decimal, Decimal>(sqLiteDataReader.GetString(1), sqLiteDataReader.GetDecimal(3), sqLiteDataReader.GetDecimal(4)));
+            while (SqliteDataReader.Read())
+              dictionary1.Add(new Tuple<int, string>(SqliteDataReader.GetInt32(0), SqliteDataReader.GetString(2)), new Tuple<string, Decimal, Decimal>(SqliteDataReader.GetString(1), SqliteDataReader.GetDecimal(3), SqliteDataReader.GetDecimal(4)));
           }
           command.CommandText = "\r\nSELECT t.ParentID, c.CategoryID, c.FullName, k.KeeperName, SUM(Count)Count, SUM(Size)Size\r\nFROM\r\n    (\r\n       SELECT CategoryID, ParentID FROM Category WHERE ParentID > 1000000 UNION\r\n       SELECT c1.CategoryID, c2.ParentID FROM Category AS c1 JOIN Category AS c2 ON (c1.ParentID = c2.CategoryID) WHERE c2.ParentID > 1000000       \r\n    ) AS t    \r\n    JOIN Category AS c ON (t.CategoryID = c.CategoryID)    \r\n    JOIN Keeper AS k ON (k.CategoryID = t.CategoryID AND k.KeeperName <> 'All')\r\nGROUP BY\r\n      t.ParentID, c.FullName, k.KeeperName, c.CategoryID\r\nORDER BY c.FullName, k.KeeperName";
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+          using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
           {
-            while (sqLiteDataReader.Read())
-              dictionary2.Add(new Tuple<int, string, int>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetString(3), sqLiteDataReader.GetInt32(1)), new Tuple<string, Decimal, Decimal>(sqLiteDataReader.GetString(2), sqLiteDataReader.GetDecimal(4), sqLiteDataReader.GetDecimal(5)));
+            while (SqliteDataReader.Read())
+              dictionary2.Add(new Tuple<int, string, int>(SqliteDataReader.GetInt32(0), SqliteDataReader.GetString(3), SqliteDataReader.GetInt32(1)), new Tuple<string, Decimal, Decimal>(SqliteDataReader.GetString(2), SqliteDataReader.GetDecimal(4), SqliteDataReader.GetDecimal(5)));
           }
           command.CommandText = "\r\nSELECT t.ParentID, c.CategoryID, c.FullName,SUM(Count)Count, SUM(Size)Size\r\nFROM\r\n    (\r\n       SELECT CategoryID, ParentID FROM Category WHERE ParentID > 1000000 UNION\r\n       SELECT c1.CategoryID, c2.ParentID FROM Category AS c1 JOIN Category AS c2 ON (c1.ParentID = c2.CategoryID) WHERE c2.ParentID > 1000000       \r\n    ) AS t    \r\n    JOIN Category AS c ON (t.CategoryID = c.CategoryID)    \r\n    JOIN Keeper AS k ON (k.CategoryID = t.CategoryID AND k.KeeperName <> 'All')\r\nGROUP BY\r\n      c.CategoryID, c.FullName\r\nORDER BY c.FullName";
-          using (SQLiteDataReader sqLiteDataReader = command.ExecuteReader())
+          using (SqliteDataReader SqliteDataReader = command.ExecuteReader())
           {
-            while (sqLiteDataReader.Read())
-              tupleList.Add(new Tuple<int, int, string, Decimal, Decimal>(sqLiteDataReader.GetInt32(0), sqLiteDataReader.GetInt32(1), sqLiteDataReader.GetString(2), sqLiteDataReader.GetDecimal(3), sqLiteDataReader.GetDecimal(4)));
+            while (SqliteDataReader.Read())
+              tupleList.Add(new Tuple<int, int, string, Decimal, Decimal>(SqliteDataReader.GetInt32(0), SqliteDataReader.GetInt32(1), SqliteDataReader.GetString(2), SqliteDataReader.GetDecimal(3), SqliteDataReader.GetDecimal(4)));
           }
           foreach (int num1 in source1.Select<KeyValuePair<int, Tuple<string, Decimal, Decimal>>, int>((Func<KeyValuePair<int, Tuple<string, Decimal, Decimal>>, int>) (x => x.Key)))
           {

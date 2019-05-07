@@ -1,4 +1,4 @@
-using System.Data.SQLite;
+using Mono.Data.Sqlite;
 using NLog;
 using TLO.local.Forms;
 
@@ -6,7 +6,7 @@ namespace TLO.local
 {
     public class DBConnectionCreator
     {
-        public SQLiteConnection Connection { get; }
+        public SqliteConnection Connection { get; }
 
         private static Logger _logger { get; set; }
 
@@ -20,19 +20,19 @@ namespace TLO.local
             var db = $"Data Source={FileDatabase};Version=3;";
             if (InMemory())
             {
-                SQLiteConnection tmpConnection = new SQLiteConnection(db);
+                SqliteConnection tmpConnection = new SqliteConnection(db);
                 tmpConnection.Open();
-                Connection = new SQLiteConnection("Data Source=:memory:;Version=3;");
+                Connection = new SqliteConnection("Data Source=:memory:;Version=3;");
                 Connection.Open();
                 _logger.Info("Загрузка базы в память...");
-                tmpConnection.BackupDatabase(Connection, "main", "main", -1, null, -1);
+//                tmpConnection.BackupDatabase(Connection, "main", "main", -1, null, -1);
                 tmpConnection.Close();
                 _logger.Info("Загрузка базы в память завершена.");
             }
             else
             {
                 _logger.Info("Подключение к файлу бд...");
-                Connection = new SQLiteConnection(db);
+                Connection = new SqliteConnection(db);
                 Connection.Open();
             }
         }
@@ -44,6 +44,7 @@ namespace TLO.local
 
         public static bool InMemory()
         {
+            return false;
             return Settings.Current.LoadDBInMemory.GetValueOrDefault(true);
         }
     }
