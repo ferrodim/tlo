@@ -652,21 +652,22 @@ label_13:;
       if (((IEnumerable<string>) url.Split('#')).FirstOrDefault<string>().Split('=').Length < 3)
         throw new ArgumentException("Не корректно указан адрес отправки отчета: " + url);
       string str1 = ((IEnumerable<string>) url.Split('#')).FirstOrDefault<string>().Split('=')[2];
-      string[] strArray = this.DownloadWebPage(string.Format("https://{1}/forum/posting.php?mode=editpost&p={0}", (object) str1, Settings.Current.HostRuTrackerOrg)).Split(new char[2]
+      var page = string.Format("https://{1}/forum/posting.php?mode=editpost&p={0}", (object) str1, Settings.Current.HostRuTrackerOrg);
+      string[] strArray = this.DownloadWebPage(page).Split(new char[2]
       {
         '\r',
         '\n'
       }, StringSplitOptions.RemoveEmptyEntries);
       Thread.Sleep(1000);
-      string.Format("align=-1&codeColor=black&codeSize=12&codeUrl2=&decflag=2&f=1584&fontFace=-1&form_token=c2a9bace5d7f3900e2bddbf5f0f0f94a&message=&mode=editpost&p=59972538&submit_mode=submit&t=3985106");
+//      string.Format("align=-1&codeColor=black&codeSize=12&codeUrl2=&decflag=2&f=1584&fontFace=-1&form_token=c2a9bace5d7f3900e2bddbf5f0f0f94a&message=&mode=editpost&p=59972538&submit_mode=submit&t=3985106");
       string str3 = ((IEnumerable<string>) strArray).Where<string>((Func<string, bool>) (x => x.Contains("form_token: '"))).FirstOrDefault<string>();
       if (string.IsNullOrWhiteSpace(str3))
         throw new ArgumentException("Параметр 'form_token' не найден на странице");
       string str4 = ((IEnumerable<string>) strArray).Where<string>((Func<string, bool>) (x => x.Contains("name=\"t\" value=\""))).FirstOrDefault<string>();
       if (string.IsNullOrWhiteSpace(str4))
-        throw new ArgumentException("Параметр 't' не найден на странице");
+        throw new ArgumentException($"Параметр 't' не найден на странице '{page}'");
       if (str4.Split('"').Length < 6)
-        throw new ArgumentException("Массив с параметром 't' меньше предполагаемого: " + str4);
+        throw new ArgumentException($"Массив с параметром 't' на странице '{page}' меньше предполагаемого: " + str4);
       if (str3.Split('\'').Length < 2)
         throw new ArgumentException("Массив с параметром 'form_token' меньше предполагаемого: " + str3);
       string str5 = ((IEnumerable<string>) strArray).Where<string>((Func<string, bool>) (x => x.Contains("name=\"subject\" "))).FirstOrDefault<string>();

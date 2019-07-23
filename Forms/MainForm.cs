@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using TLO.local.Forms;
+using TLO.local.Properties;
 
 namespace TLO.local
 {
@@ -160,20 +161,20 @@ namespace TLO.local
                 {
                     if (new SettingsForm().ShowDialog() == DialogResult.OK)
                     {
-                        this._CategorySource.Clear();
-                        this._CategorySource.DataSource = (object) null;
-                        this._CategorySource.DataSource = (object) ClientLocalDB.Current.GetCategoriesEnable();
-                        this._CategorySource.Position = 0;
-                        if (MessageBox.Show(
-                                "Запустить загрузку/обновление информации о топиках (раздачах) по всем категориям?",
-                                "Обновление данных", MessageBoxButtons.OKCancel, MessageBoxIcon.Question,
-                                MessageBoxDefaultButton.Button1) == DialogResult.OK)
-                            this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateTopicsByCategories),
-                                "Полное обновление информации о топиках (раздачах) по всем категориям...",
-                                (object) ClientLocalDB.Current.GetCategoriesEnable());
+//                        this._CategorySource.Clear();
+//                        this._CategorySource.DataSource = (object) null;
+//                        this._CategorySource.DataSource = (object) ClientLocalDB.Current.GetCategoriesEnable();
+//                        this._CategorySource.Position = 0;
+//                        if (MessageBox.Show(
+//                                "Запустить загрузку/обновление информации о топиках (раздачах) по всем категориям?",
+//                                "Обновление данных", MessageBoxButtons.OKCancel, MessageBoxIcon.Question,
+//                                MessageBoxDefaultButton.Button1) == DialogResult.OK)
+//                            this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateTopicsByCategories),
+//                                "Полное обновление информации о топиках (раздачах) по всем категориям...",
+//                                (object) ClientLocalDB.Current.GetCategoriesEnable());
                     }
                 }
-                else if (sender == UpdateCountSeedersToolStripMenuItem)
+                else if (sender == UpdateAll)
                 {
                     this.dwCreateAndRun(new DoWorkEventHandler(Logic.bwUpdateTopicsByCategories),
                         "Полное обновление информации о топиках (раздачах) по всем категориям...",
@@ -1075,6 +1076,7 @@ namespace TLO.local
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.ClearKeeperListsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearDatabaseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.menuTimerSetting = new System.Windows.Forms.ToolStripMenuItem();
             this._cbCategory = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -1122,7 +1124,6 @@ namespace TLO.local
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.menuStrip1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this._tpReportDownloads.SuspendLayout();
@@ -1137,11 +1138,12 @@ namespace TLO.local
             // 
             // menuStrip1
             // 
+            this.menuStrip1.DataBindings.Add(new System.Windows.Forms.Binding("Location", global::TLO.local.Properties.Settings.Default, "WindowLocation", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.файлToolStripMenuItem,
             this.отчетыToolStripMenuItem,
             this.задачиToolStripMenuItem});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Location = global::TLO.local.Properties.Settings.Default.WindowLocation;
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1040, 24);
             this.menuStrip1.TabIndex = 0;
@@ -1312,6 +1314,11 @@ namespace TLO.local
             this.ClearDatabaseToolStripMenuItem.Size = new System.Drawing.Size(379, 22);
             this.ClearDatabaseToolStripMenuItem.Text = "Очистить списки разделов (удалить топики)";
             this.ClearDatabaseToolStripMenuItem.Click += new System.EventHandler(this.MenuClick);
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(376, 6);
             // 
             // menuTimerSetting
             // 
@@ -1861,11 +1868,6 @@ namespace TLO.local
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             this.toolStripProgressBar1.Visible = false;
             // 
-            // toolStripSeparator5
-            // 
-            this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(376, 6);
-            // 
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(1040, 540);
@@ -1875,9 +1877,12 @@ namespace TLO.local
             this.Controls.Add(this._cbCategory);
             this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Location = global::TLO.local.Properties.Settings.Default.WindowLocation;
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
-            this.Text = "Form1";
+            this.Text = "TLO";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FireFormClosing);
+            this.Load += new System.EventHandler(this.FormLoad);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.tabControl1.ResumeLayout(false);
@@ -1896,6 +1901,17 @@ namespace TLO.local
             this.ResumeLayout(false);
             this.PerformLayout();
 
+        }
+        private void FormLoad(object sender, EventArgs e)
+        {
+            this.Location = Properties.Settings.Default.WindowLocation;
+        }
+
+        private void FireFormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Copy window location to app settings
+            Properties.Settings.Default.WindowLocation = this.Location;
+            Properties.Settings.Default.Save();
         }
     }
 }
