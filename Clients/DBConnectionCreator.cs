@@ -1,6 +1,7 @@
+using System.IO;
+using System.Reflection;
 using Mono.Data.Sqlite;
 using NLog;
-using TLO.local.Forms;
 
 namespace TLO.local
 {
@@ -10,19 +11,19 @@ namespace TLO.local
 
         private static Logger _logger { get; set; }
 
-        string FileDatabase => System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), "Database.db");
+        string FileDatabase => Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Database.db");
 
         public DBConnectionCreator()
         {
             if (_logger == null)
                 _logger = LogManager.GetLogger("ClientServer");
             
-            var db = $"Data Source={FileDatabase};Version=3;";
+            var db = $"URI=file:{FileDatabase},version=3;";
             if (InMemory())
             {
                 SqliteConnection tmpConnection = new SqliteConnection(db);
                 tmpConnection.Open();
-                Connection = new SqliteConnection("Data Source=:memory:;Version=3;");
+                Connection = new SqliteConnection("URI=file::memory:,version=3");
                 Connection.Open();
                 _logger.Info("Загрузка базы в память...");
 //                tmpConnection.BackupDatabase(Connection, "main", "main", -1, null, -1);
