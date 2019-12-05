@@ -340,6 +340,8 @@ namespace TLO.Clients
                 catch (Exception ex)
                 {
                     _logger.Error("Ошибка получения информации о раздаче по адресу \"" + str2 + "\": " + ex.Message);
+                    _logger.Warn(ex.StackTrace);
+                    _logger.Debug(ex);
                 }
 
             return tuple;
@@ -505,41 +507,31 @@ namespace TLO.Clients
                 }
 
                 byte[] numArray2;
-                try
+                if (string.IsNullOrWhiteSpace(_apiId))
                 {
-                    if (string.IsNullOrWhiteSpace(_apiId))
-                    {
-                        var str =
-                            DownloadWebPage(string.Format(
-                                    "https://" + Settings.Current.HostRuTrackerOrg + "/forum/viewtopic.php?t={0}", id))
-                                .Split(new char[2]
-                                {
-                                    '\r',
-                                    '\n'
-                                }, StringSplitOptions.RemoveEmptyEntries).Where(x => x.Contains("form_token: '"))
-                                .FirstOrDefault();
-                        if (!string.IsNullOrWhiteSpace(str))
-                            str = str.Split(new char[1] {'\''}, StringSplitOptions.RemoveEmptyEntries)[1];
-                        var s = string.Format("form_token={0}", str);
-                        numArray2 = _webClient.UploadData(
-                            string.Format("https://dl." + Settings.Current.HostRuTrackerOrg + "/forum/dl.php?t={0}",
-                                id), "POST", Encoding.GetEncoding(1251).GetBytes(s));
-                    }
-                    else
-                    {
-                        numArray2 = _webClient.UploadData(
-                            "https://" + Settings.Current.HostRuTrackerOrg + "/forum/dl.php", "POST",
-                            Encoding.GetEncoding(1251).GetBytes(string.Format(
-                                "keeper_user_id={0}&keeper_api_key={1}&t={2}&add_retracker_url=0", _keeperId, _apiId,
-                                id)));
-                    }
+                    var str =
+                        DownloadWebPage(string.Format(
+                                "https://" + Settings.Current.HostRuTrackerOrg + "/forum/viewtopic.php?t={0}", id))
+                            .Split(new char[2]
+                            {
+                                '\r',
+                                '\n'
+                            }, StringSplitOptions.RemoveEmptyEntries).Where(x => x.Contains("form_token: '"))
+                            .FirstOrDefault();
+                    if (!string.IsNullOrWhiteSpace(str))
+                        str = str.Split(new char[1] {'\''}, StringSplitOptions.RemoveEmptyEntries)[1];
+                    var s = string.Format("form_token={0}", str);
+                    numArray2 = _webClient.UploadData(
+                        string.Format("https://" + Settings.Current.HostRuTrackerOrg + "/forum/dl.php?t={0}",
+                            id), "POST", Encoding.GetEncoding(1251).GetBytes(s));
                 }
-                catch (Exception ex)
+                else
                 {
-                    //if (index >= 20)
-                    throw new Exception("Не удалось скачать WEB-страницу за 20 попыток:" + ex.Message, ex);
-//                    Thread.Sleep(index * 1000);
-//                    continue;
+                    numArray2 = _webClient.UploadData(
+                        "https://" + Settings.Current.HostRuTrackerOrg + "/forum/dl.php", "POST",
+                        Encoding.GetEncoding(1251).GetBytes(string.Format(
+                            "keeper_user_id={0}&keeper_api_key={1}&t={2}&add_retracker_url=0", _keeperId, _apiId,
+                            id)));
                 }
 
                 var lower = Encoding.GetEncoding(1251).GetString(numArray2).ToLower();
@@ -599,7 +591,9 @@ namespace TLO.Clients
                 }
                 catch (Exception ex)
                 {
-                    _logger.Warn(ex.Message);
+                    _logger.Error(ex.Message);
+                    _logger.Warn(ex.StackTrace);
+                    _logger.Debug(ex);
                 }
 
                 if (!string.IsNullOrWhiteSpace(empty) && !string.IsNullOrWhiteSpace(_userName) &&
@@ -622,8 +616,9 @@ namespace TLO.Clients
                 }
                 catch (Exception e)
                 {
-                    _logger.Warn(e.Message);
-                    Thread.Sleep(index * 1000);
+                    _logger.Error(e.Message);
+                    _logger.Warn(e.StackTrace);
+                    _logger.Debug(e);
                     continue;
                 }
 
@@ -659,7 +654,7 @@ namespace TLO.Clients
                 }
                 catch
                 {
-                    Thread.Sleep(index * 1000);
+                    Thread.Sleep(index * 200);
                     continue;
                 }
 
@@ -704,7 +699,7 @@ namespace TLO.Clients
                 '\r',
                 '\n'
             }, StringSplitOptions.RemoveEmptyEntries);
-            Thread.Sleep(1000);
+            Thread.Sleep(200);
 //      string.Format("align=-1&codeColor=black&codeSize=12&codeUrl2=&decflag=2&f=1584&fontFace=-1&form_token=c2a9bace5d7f3900e2bddbf5f0f0f94a&message=&mode=editpost&p=59972538&submit_mode=submit&t=3985106");
             var str3 = strArray.Where(x => x.Contains("form_token: '")).FirstOrDefault();
             if (string.IsNullOrWhiteSpace(str3))
@@ -753,6 +748,9 @@ namespace TLO.Clients
                 }
                 catch (Exception ex)
                 {
+                    _logger.Error(ex.Message);
+                    _logger.Warn(ex.StackTrace);
+                    _logger.Debug(ex);
                     //if (index2 == 20)
                     throw new Exception("Не удалось отправить отчет за 1 попытку. Ошибка " + ex.Message);
 //                    Thread.Sleep(index2 * 1000);
@@ -763,31 +761,25 @@ namespace TLO.Clients
 
         public void ReadKeeperInfo()
         {
-            try
+            var str = DownloadWebPage(string.Format("https://{1}/forum/profile.php?mode=viewprofile&u={0}",
+                _userName, Settings.Current.HostRuTrackerOrg)).Split('\r', '\n').Where(x =>
             {
-                var str = DownloadWebPage(string.Format("https://{1}/forum/profile.php?mode=viewprofile&u={0}",
-                    _userName, Settings.Current.HostRuTrackerOrg)).Split('\r', '\n').Where(x =>
-                {
-                    if (x.Contains("bt:"))
-                        return x.Contains("api:");
-                    return false;
-                }).FirstOrDefault();
-                if (string.IsNullOrWhiteSpace(str))
-                    return;
-                _apiId = str.Split(new string[2]
-                {
-                    "<b>",
-                    "</b>"
-                }, StringSplitOptions.RemoveEmptyEntries)[3];
-                _keeperId = int.Parse(str.Split(new string[2]
-                {
-                    "<b>",
-                    "</b>"
-                }, StringSplitOptions.RemoveEmptyEntries)[5]);
-            }
-            catch
+                if (x.Contains("bt:"))
+                    return x.Contains("api:");
+                return false;
+            }).FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(str))
+                return;
+            _apiId = str.Split(new string[2]
             {
-            }
+                "<b>",
+                "</b>"
+            }, StringSplitOptions.RemoveEmptyEntries)[3];
+            _keeperId = int.Parse(str.Split(new string[2]
+            {
+                "<b>",
+                "</b>"
+            }, StringSplitOptions.RemoveEmptyEntries)[5]);
 
             _logger.Info("Результат авторизации: KeeperID: {0}; KeeperApiKey: {1}", _keeperId, _apiId);
         }

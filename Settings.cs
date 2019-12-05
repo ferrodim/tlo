@@ -44,7 +44,7 @@ namespace TLO
 {{/categories}}
 ".Trim();
             ReportCategoryHeaderTemplate = @"
-[url={{{category_uri}}}][color=darkgreen][b]{{{category_name}}}[/b][/color][/url] | [url={{{category_check_seeds_uri}][color=darkgreen][b]Проверка сидов[/b][/color][/url]
+[url={{{category_uri}}}][color=darkgreen][b]{{{category_name}}}[/b][/color][/url] | [url={{{category_check_seeds_uri}}}][color=darkgreen][b]Проверка сидов[/b][/color][/url]
 
 [b]Актуально на:[/b] {{{today}}}
 

@@ -69,6 +69,7 @@ namespace TLO.Forms
                 foreach (string item in apiHosts.Items)
                     if (item == current.ApiHost)
                         apiHosts.SelectedItem = item;
+            rutrackerHost.Text = current.HostRuTrackerOrg;
 
             var appLogLevel = _appLogLevel;
             var logLevel = current.LogLevel;
@@ -514,6 +515,7 @@ namespace TLO.Forms
 
             current.DisableServerCertVerify = DisableCertVerifyCheck.Checked;
             current.ApiHost = apiHosts.SelectedItem?.ToString();
+            current.HostRuTrackerOrg = rutrackerHost.Text;
             return current;
         }
 

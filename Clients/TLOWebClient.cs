@@ -23,7 +23,7 @@ namespace TLO.Clients
         }
 
         public TloWebClient(Encoding encoding)
-            : this(encoding, null, null)
+            : this(encoding, null, null, enableProxy: true)
         {
         }
 
@@ -95,16 +95,16 @@ namespace TLO.Clients
             webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             webRequest.Headers.Add("Pragma", "no-cache");
             webRequest.Timeout = 60000;
-            if (address.Host == "dl.rutracker.org" && address.AbsoluteUri.Contains("="))
-            {
-                var strArray = address.AbsoluteUri.Split(new char[1]
-                {
-                    '='
-                }, StringSplitOptions.RemoveEmptyEntries);
-                CookieContainer.Add(address, new Cookie("bb_dl", strArray[1]));
-                webRequest.Referer = string.Format("https://{1}/forum/viewtopic.php?t={0}", strArray[1],
-                    Settings.Current.HostRuTrackerOrg);
-            }
+//            if (address.Host == "dl.rutracker.org" && address.AbsoluteUri.Contains("="))
+//            {
+//                var strArray = address.AbsoluteUri.Split(new char[1]
+//                {
+//                    '='
+//                }, StringSplitOptions.RemoveEmptyEntries);
+//                CookieContainer.Add(address, new Cookie("bb_dl", strArray[1]));
+//                webRequest.Referer = string.Format("https://{1}/forum/viewtopic.php?t={0}", strArray[1],
+//                    Settings.Current.HostRuTrackerOrg);
+//            }
 
             webRequest.CookieContainer = CookieContainer;
             if (Settings.Current.DisableServerCertVerify.GetValueOrDefault(false))
@@ -155,26 +155,36 @@ namespace TLO.Clients
 
             if (responseStream != null)
             {
-                var reader = new StreamReader(responseStream);
-                var text = reader.ReadToEnd();
-                Stream stremReplace = new MemoryStream(text.Length);
-                var writer = new StreamWriter(stremReplace);
-                writer.AutoFlush = true;
-                writer.Write(text);
-                stremReplace.Seek(0, SeekOrigin.Begin);
+                Stream streamReplace = new MemoryStream();
+                responseStream.CopyTo(streamReplace);
+                streamReplace.Seek(0, SeekOrigin.Begin);
+
+                var length = streamReplace.Length;
+                var buffer = new byte[length];
+                var read = 0;
+                do
+                {
+                    var readed = streamReplace.Read(buffer, 0, (int) length);
+                    read += readed;
+                } while (read < length);
+
+                var text = Encoding.GetEncoding(1251).GetString(buffer);
+
+                streamReplace.Seek(0, SeekOrigin.Begin);
+
                 var fieldInfo = webResponse
                     .GetType()
-                    .GetField("m_ConnectStream",
+                    .GetField(
+                        "m_ConnectStream",
                         BindingFlags.Instance | BindingFlags.NonPublic
                     );
-                if (fieldInfo != null) fieldInfo.SetValue(webResponse, stremReplace);
+                if (fieldInfo != null) fieldInfo.SetValue(webResponse, streamReplace);
                 var httpWebResponse = webResponse;
                 _logger.Trace(
                     $"\r\nHTTP/{httpWebResponse.ProtocolVersion} {httpWebResponse.StatusCode} {httpWebResponse.StatusDescription}\r\n" +
                     headersText +
                     "\r\n\r\n" +
                     text);
-                reader.Close();
             }
         }
 
