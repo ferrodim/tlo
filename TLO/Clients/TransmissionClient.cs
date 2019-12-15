@@ -12,6 +12,8 @@ namespace TLO.Clients
 {
     internal class TransmissionClient : ITorrentClient
     {
+        public const string ClientId = "Transmission";
+        public string Id => ClientId;
         private static Logger _logger;
         private readonly string _url;
         private readonly TloWebClient _webClient;

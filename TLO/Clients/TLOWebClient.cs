@@ -1,9 +1,10 @@
-﻿﻿using System;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using MihaZupan;
 using NLog;
 
 namespace TLO.Clients
@@ -63,9 +64,28 @@ namespace TLO.Clients
                 throw new Exception("Empty WebRequest");
             }
 
-            if (!_enableProxy)
+            if (_enableProxy)
             {
-                webRequest.Proxy = new WebProxy();
+                if (Settings.Current.UseProxy == true)
+                {
+                    if (Settings.Current.SystemProxy == true)
+                    {
+                        webRequest.Proxy = WebRequest.GetSystemWebProxy();
+                    }
+                    else
+                    {
+                        var proxy = Settings.Current.SelectedProxy;
+                        if (proxy.Contains("http://"))
+                        {
+                            webRequest.Proxy = new WebProxy(proxy);
+                        }
+                        else
+                        {
+                            var uri = new Uri(proxy);
+                            webRequest.Proxy = new HttpToSocks5Proxy(uri.Host, uri.Port);
+                        }
+                    }
+                }
             }
 
             webRequest.Accept = _isJson ? "application/json" : _accept;
@@ -79,68 +99,85 @@ namespace TLO.Clients
             }
 
             webRequest.ContentType = "application/x-www-form-urlencoded";
-            webRequest.KeepAlive = true;
+            // webRequest.KeepAlive = true;
             webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             webRequest.Headers.Add("Pragma", "no-cache");
-            webRequest.Timeout = 60000;
-//            if (address.Host == "dl.rutracker.org" && address.AbsoluteUri.Contains("="))
-//            {
-//                var strArray = address.AbsoluteUri.Split(new char[1]
-//                {
-//                    '='
-//                }, StringSplitOptions.RemoveEmptyEntries);
-//                CookieContainer.Add(address, new Cookie("bb_dl", strArray[1]));
-//                webRequest.Referer = string.Format("https://{1}/forum/viewtopic.php?t={0}", strArray[1],
-//                    Settings.Current.HostRuTrackerOrg);
-//            }
+            // webRequest.Timeout = 60000;
 
             webRequest.CookieContainer = CookieContainer;
             if (Settings.Current.DisableServerCertVerify.GetValueOrDefault(false))
                 webRequest.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
 
+            // logRequest(webRequest);
+
             return webRequest;
         }
 
-        protected override WebResponse GetWebResponse(WebRequest request)
+        // protected override WebResponse GetWebResponse(WebRequest request)
+        // {
+        //     WebResponse response;
+        //     try
+        //     {
+        //         response = base.GetWebResponse(request);
+        //     }
+        //     catch (WebException e)
+        //     {
+        //         LogManager.GetLogger(GetType().ToString()).Error(e);
+        //         logResponse((HttpWebResponse) e.Response);
+        //
+        //         throw;
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         LogManager.GetLogger(GetType().ToString()).Error(e);
+        //         if (!(e.InnerException is WebException))
+        //         {
+        //             throw;
+        //         }
+        //
+        //         logResponse((HttpWebResponse) request.GetResponse());
+        //
+        //         throw;
+        //     }
+        //
+        //     logResponse((HttpWebResponse) response);
+        //
+        //     return response;
+        // }
+
+        private static void logRequest(WebRequest webRequest)
         {
-            _logger.Trace($"Go to '{request.RequestUri}'");
-            WebResponse response;
+            var request = webRequest as HttpWebRequest;
+
+            var body = "";
             try
             {
-                response = base.GetWebResponse(request);
+                if (request.Method == "POST")
+                {
+                    Stream streamReplace = new MemoryStream();
+                    request.GetRequestStream().CopyTo(streamReplace);
+                    streamReplace.Seek(0, SeekOrigin.Begin);
+
+                    var streamReader = new StreamReader(streamReplace);
+                    body = streamReader.ReadToEnd();
+                }
             }
             catch (Exception e)
             {
-                if (!(e.InnerException is WebException))
-                {
-                    throw;
-                }
-
-                logResponse((HttpWebResponse) request.GetResponse());
-
-                throw;
+                body = e.Message;
             }
 
-            logResponse((HttpWebResponse) response);
-
-            return response;
+            _logger.Trace(
+                $"\r\n\r\nSENDING HTTP REQUEST {request.RequestUri}\r\n{request.Method} {request.RequestUri.PathAndQuery} HTTP/{request.ProtocolVersion}\r\n" +
+                request.Headers + "\r\n\r\n" + body
+            );
         }
-
 
         private static void logResponse(HttpWebResponse response)
         {
+            if (response == null) return;
             var webResponse = response;
             var responseStream = webResponse.GetResponseStream();
-            var headersText = "";
-            var items = Enumerable
-                .Range(0, webResponse.Headers.Count)
-                .SelectMany(i => webResponse.Headers.GetValues(i)
-                    .Select(v => Tuple.Create(webResponse.Headers.GetKey(i), v))
-                );
-            foreach (var header in items)
-            {
-                headersText += $"{header.Item1}: {header.Item2}\r\n";
-            }
 
             if (responseStream != null)
             {
@@ -168,14 +205,22 @@ namespace TLO.Clients
                 var fieldInfo = webResponse
                     .GetType()
                     .GetField(
-                        "m_ConnectStream",
+                        "stream",
                         BindingFlags.Instance | BindingFlags.NonPublic
                     );
-                if (fieldInfo != null) fieldInfo.SetValue(webResponse, streamReplace);
+                if (fieldInfo != null)
+                {
+                    fieldInfo.SetValue(webResponse, streamReplace);
+                }
+                else
+                {
+                    throw new InvalidDataException("Invalid web response or runtime ");
+                }
                 var httpWebResponse = webResponse;
+                webResponse.Headers["Set-Cookie"] = "--HIDDEN FOR SECURITY REASONS--";
                 _logger.Trace(
-                    $"\r\nHTTP/{httpWebResponse.ProtocolVersion} {httpWebResponse.StatusCode} {httpWebResponse.StatusDescription}\r\n" +
-                    headersText +
+                    $"\r\n\r\nRECEIVED HTTP RESPONSE\r\nHTTP/{httpWebResponse.ProtocolVersion} {(int) httpWebResponse.StatusCode} {httpWebResponse.StatusDescription}\r\n" +
+                    webResponse.Headers +
                     "\r\n\r\n" +
                     text);
             }
@@ -191,6 +236,12 @@ namespace TLO.Clients
         {
             _isJson = true;
             return DownloadString(url);
+        }
+
+        public bool IsJson
+        {
+            get => _isJson;
+            set => _isJson = value;
         }
     }
 }

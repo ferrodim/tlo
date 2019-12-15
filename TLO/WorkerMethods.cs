@@ -69,6 +69,7 @@ namespace TLO
             catch (Exception ex)
             {
                 Logger.Error(ex.Message);
+                Logger.Debug(ex.StackTrace);
                 Logger.Debug(ex);
                 var num2 = (int) MessageBox.Show("Произошла ошибка при скачивании торрент-файлов:\r\n" + ex.Message,
                     "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Hand, MessageBoxDefaultButton.Button1);
@@ -219,30 +220,31 @@ namespace TLO
                                         }
                                     }
 
-                                    if (!string.IsNullOrWhiteSpace(t.TorrentName))
-                                    {
-                                        if (Directory.Exists(Path.Combine(category.Folder, t.TorrentName)))
-                                        {
-                                            if (!Directory.Exists(Path.Combine(category.Folder,
-                                                t.TopicID.ToString())))
-                                                Directory.CreateDirectory(Path.Combine(category.Folder,
-                                                    t.TopicID.ToString()));
-                                            Directory.Move(Path.Combine(category.Folder, t.TorrentName),
-                                                Path.Combine(category.Folder, t.TopicID.ToString(), t.TorrentName));
-                                            continue;
-                                        }
-
-                                        if (File.Exists(Path.Combine(category.Folder, t.TorrentName)))
-                                        {
-                                            if (!Directory.Exists(Path.Combine(category.Folder,
-                                                t.TopicID.ToString())))
-                                                Directory.CreateDirectory(Path.Combine(category.Folder,
-                                                    t.TopicID.ToString()));
-                                            File.Move(Path.Combine(category.Folder, t.TorrentName),
-                                                Path.Combine(category.Folder, t.TopicID.ToString(), t.TorrentName));
-                                            continue;
-                                        }
-                                    }
+                                    // TODO понять нужна ли ниже закомментированная логика
+                                    // if (!string.IsNullOrWhiteSpace(t.TorrentName))
+                                    // {
+                                    //     if (Directory.Exists(Path.Combine(category.Folder, t.TorrentName)))
+                                    //     {
+                                    //         if (!Directory.Exists(Path.Combine(category.Folder,
+                                    //             t.TopicID.ToString())))
+                                    //             Directory.CreateDirectory(Path.Combine(category.Folder,
+                                    //                 t.TopicID.ToString()));
+                                    //         Directory.Move(Path.Combine(category.Folder, t.TorrentName),
+                                    //             Path.Combine(category.Folder, t.TopicID.ToString(), t.TorrentName));
+                                    //         continue;
+                                    //     }
+                                    //
+                                    //     if (File.Exists(Path.Combine(category.Folder, t.TorrentName)))
+                                    //     {
+                                    //         if (!Directory.Exists(Path.Combine(category.Folder,
+                                    //             t.TopicID.ToString())))
+                                    //             Directory.CreateDirectory(Path.Combine(category.Folder,
+                                    //                 t.TopicID.ToString()));
+                                    //         File.Move(Path.Combine(category.Folder, t.TorrentName),
+                                    //             Path.Combine(category.Folder, t.TopicID.ToString(), t.TorrentName));
+                                    //         continue;
+                                    //     }
+                                    // }
                                 }
                                 else
                                 {
@@ -256,6 +258,8 @@ namespace TLO
                         }
                         catch (Exception ex)
                         {
+                            Logger.Error(ex);
+                            Logger.Error(ex.StackTrace);
                             Logger.Warn(
                                 "Не удалось скачать или добавить в торрент-клиент торрент-файл для раздачи \"" +
                                 t.Name + "\". Статус раздачи: " + t.Status + "\t\t" + ex.Message);

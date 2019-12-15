@@ -31,15 +31,14 @@ namespace TLO.Forms
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources =
+                new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 =
                 new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 =
                 new System.Windows.Forms.DataGridViewCellStyle();
-            System.ComponentModel.ComponentResourceManager resources =
-                new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.файлToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this._btSaveToFile = new System.Windows.Forms.ToolStripMenuItem();
             this._btLoadSettingsFromFile = new System.Windows.Forms.ToolStripMenuItem();
@@ -63,6 +62,7 @@ namespace TLO.Forms
             this.ClearDatabaseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.menuTimerSetting = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this._cbCategory = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -127,7 +127,10 @@ namespace TLO.Forms
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[]
-                {this.файлToolStripMenuItem, this.отчетыToolStripMenuItem, this.задачиToolStripMenuItem});
+            {
+                this.файлToolStripMenuItem, this.отчетыToolStripMenuItem, this.задачиToolStripMenuItem,
+                this.menuSettingsToolStripMenuItem
+            });
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(984, 24);
@@ -138,19 +141,12 @@ namespace TLO.Forms
             // 
             this.файлToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                this.menuSettingsToolStripMenuItem, this.toolStripSeparator4, this._btSaveToFile,
-                this._btLoadSettingsFromFile, this.toolStripSeparator3, this.ExitToolStripMenuItem
+                this.toolStripSeparator4, this._btSaveToFile, this._btLoadSettingsFromFile, this.toolStripSeparator3,
+                this.ExitToolStripMenuItem
             });
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
             this.файлToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.файлToolStripMenuItem.Text = "Файл";
-            // 
-            // menuSettingsToolStripMenuItem
-            // 
-            this.menuSettingsToolStripMenuItem.Name = "menuSettingsToolStripMenuItem";
-            this.menuSettingsToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
-            this.menuSettingsToolStripMenuItem.Text = "Настройки";
-            this.menuSettingsToolStripMenuItem.Click += new System.EventHandler(this.MenuClick);
             // 
             // toolStripSeparator4
             // 
@@ -309,6 +305,15 @@ namespace TLO.Forms
             this.menuTimerSetting.Name = "menuTimerSetting";
             this.menuTimerSetting.Size = new System.Drawing.Size(379, 22);
             this.menuTimerSetting.Text = "Таймер";
+            // 
+            // menuSettingsToolStripMenuItem
+            // 
+            this.menuSettingsToolStripMenuItem.Image =
+                ((System.Drawing.Image) (resources.GetObject("menuSettingsToolStripMenuItem.Image")));
+            this.menuSettingsToolStripMenuItem.Name = "menuSettingsToolStripMenuItem";
+            this.menuSettingsToolStripMenuItem.Size = new System.Drawing.Size(95, 20);
+            this.menuSettingsToolStripMenuItem.Text = "Настройки";
+            this.menuSettingsToolStripMenuItem.Click += new System.EventHandler(this.MenuClick);
             // 
             // _cbCategory
             // 
@@ -519,7 +524,7 @@ namespace TLO.Forms
             this.linkLabel5.AutoSize = true;
             this.linkLabel5.Location = new System.Drawing.Point(780, 126);
             this.linkLabel5.Name = "linkLabel5";
-            this.linkLabel5.Size = new System.Drawing.Size(202, 15);
+            this.linkLabel5.Size = new System.Drawing.Size(201, 15);
             this.linkLabel5.TabIndex = 22;
             this.linkLabel5.TabStop = true;
             this.linkLabel5.Text = "Удалить из Torrent-клиента+файлы";
@@ -561,7 +566,7 @@ namespace TLO.Forms
             this._llSelectedTopicsToTorrentClient.AutoSize = true;
             this._llSelectedTopicsToTorrentClient.Location = new System.Drawing.Point(780, 81);
             this._llSelectedTopicsToTorrentClient.Name = "_llSelectedTopicsToTorrentClient";
-            this._llSelectedTopicsToTorrentClient.Size = new System.Drawing.Size(152, 15);
+            this._llSelectedTopicsToTorrentClient.Size = new System.Drawing.Size(151, 15);
             this._llSelectedTopicsToTorrentClient.TabIndex = 19;
             this._llSelectedTopicsToTorrentClient.TabStop = true;
             this._llSelectedTopicsToTorrentClient.Text = "Добавить в Torrent-клиент";
@@ -575,7 +580,7 @@ namespace TLO.Forms
             this._llDownloadSelectTopics.AutoSize = true;
             this._llDownloadSelectTopics.Location = new System.Drawing.Point(780, 58);
             this._llDownloadSelectTopics.Name = "_llDownloadSelectTopics";
-            this._llDownloadSelectTopics.Size = new System.Drawing.Size(135, 15);
+            this._llDownloadSelectTopics.Size = new System.Drawing.Size(134, 15);
             this._llDownloadSelectTopics.TabIndex = 18;
             this._llDownloadSelectTopics.TabStop = true;
             this._llDownloadSelectTopics.Text = "Скачать Torrent-файлы";

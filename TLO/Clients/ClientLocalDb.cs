@@ -1,7 +1,7 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
+using Mono.Data.Sqlite;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -14,7 +14,7 @@ namespace TLO.Clients
     {
         private static ClientLocalDb? _current;
         private static Logger? _logger;
-        private readonly SQLiteConnection _conn;
+        private readonly SqliteConnection _conn;
 
         public static ClientLocalDb Current => _current ??= new ClientLocalDb();
 
@@ -44,7 +44,7 @@ namespace TLO.Clients
             }
         }
 
-        public SQLiteCommand CreateCommand()
+        public SqliteCommand CreateCommand()
         {
             return _conn.CreateCommand();
         }

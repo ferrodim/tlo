@@ -16,6 +16,8 @@ namespace TLO.Clients
 {
     internal class UTorrentClient : ITorrentClient
     {
+        public const string ClientId = "uTorrent";
+        public string Id => ClientId;
         private static Logger _logger;
         private readonly string _serverName;
         private readonly int _serverPort;

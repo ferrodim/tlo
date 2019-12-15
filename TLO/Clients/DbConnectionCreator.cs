@@ -1,4 +1,4 @@
-using System.Data.SQLite;
+using Mono.Data.Sqlite;
 using NLog;
 
 namespace TLO.Clients
@@ -13,18 +13,18 @@ namespace TLO.Clients
             var db = $"Data Source={ClientLocalDb.FileDatabase};Version=3;";
             if (InMemory())
             {
-                _internalConnection = new SQLiteConnection(db);
+                _internalConnection = new SqliteConnection(db);
                 _internalConnection.Open();
-                Connection = new SQLiteConnection("Data Source=:memory:;Version=3;");
+                Connection = new SqliteConnection("Data Source=:memory:;Version=3;");
                 Connection.Open();
                 Logger.Info("Загрузка базы в память...");
-                _internalConnection.BackupDatabase(Connection, "main", "main", -1, null, -1);
+                // _internalConnection.BackupDatabase(Connection, "main", "main", -1, null, -1);
                 Logger.Info("Загрузка базы в память завершена.");
             }
             else
             {
                 Logger.Info("Подключение к файлу бд...");
-                _internalConnection = new SQLiteConnection(db);
+                _internalConnection = new SqliteConnection(db);
                 _internalConnection.Open();
                 Connection = _internalConnection;
             }
@@ -38,7 +38,7 @@ namespace TLO.Clients
                 var command = Connection.CreateCommand();
                 command.CommandText = "VACUUM \"main\";";
                 command.ExecuteNonQuery();
-                Connection.BackupDatabase(_internalConnection, "main", "main", -1, null, -1);
+                // Connection.BackupDatabase(_internalConnection, "main", "main", -1, null, -1);
                 Logger.Info("Сохранение завершено.");
             }
         }
@@ -74,8 +74,8 @@ namespace TLO.Clients
         public static DbConnectionCreator Instance => _instance ??= new DbConnectionCreator();
 
         private readonly bool _inMemory = InMemory();
-        private readonly SQLiteConnection _internalConnection;
-        public SQLiteConnection Connection { get; }
+        private readonly SqliteConnection _internalConnection;
+        public SqliteConnection Connection { get; }
 
         private static Logger? Logger { get; set; }
 
@@ -86,7 +86,7 @@ namespace TLO.Clients
 
         private static bool InMemory()
         {
-            return Settings.Current.LoadDBInMemory.GetValueOrDefault(true);
+            return false; // Settings.Current.LoadDBInMemory.GetValueOrDefault(true);
         }
     }
 }

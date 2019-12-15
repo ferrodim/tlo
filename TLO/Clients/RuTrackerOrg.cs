@@ -494,6 +494,7 @@ namespace TLO.Clients
                 {
                     _logger.Warn(ex.Message);
                     _logger.Warn(ex);
+                    _logger.Trace(ex.StackTrace);
                 }
 
                 if (!string.IsNullOrWhiteSpace(empty))
@@ -592,8 +593,8 @@ namespace TLO.Clients
                 catch (Exception ex)
                 {
                     _logger.Error(ex.Message);
-                    _logger.Warn(ex.StackTrace);
-                    _logger.Debug(ex);
+                    _logger.Error(ex.StackTrace);
+                    _logger.Error(ex);
                 }
 
                 if (!string.IsNullOrWhiteSpace(empty) && !string.IsNullOrWhiteSpace(_userName) &&
@@ -617,8 +618,8 @@ namespace TLO.Clients
                 catch (Exception e)
                 {
                     _logger.Error(e.Message);
-                    _logger.Warn(e.StackTrace);
-                    _logger.Debug(e);
+                    _logger.Error(e.StackTrace);
+                    _logger.Error(e);
                     continue;
                 }
 

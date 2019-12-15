@@ -43,35 +43,35 @@ namespace TLO.Forms
                     if (_tmr.Enabled) _tmr.Stop();
                 }
             };
-            var locationBinding = new Binding("Location", Properties.Settings.Default,
-                "WindowLocation", true, DataSourceUpdateMode.OnPropertyChanged);
-            var sizeBinding = new Binding("Size", Properties.Settings.Default,
-                "WindowSize", true, DataSourceUpdateMode.OnPropertyChanged);
-            locationBinding.ControlUpdateMode = ControlUpdateMode.Never;
-            sizeBinding.ControlUpdateMode = ControlUpdateMode.Never;
-            var bindingAdded = false;
+            // var locationBinding = new Binding("Location", Properties.Settings.Default,
+                // "WindowLocation", true, DataSourceUpdateMode.OnPropertyChanged);
+            // var sizeBinding = new Binding("Size", Properties.Settings.Default,
+                // "WindowSize", true, DataSourceUpdateMode.OnPropertyChanged);
+            // locationBinding.ControlUpdateMode = ControlUpdateMode.Never;
+            // sizeBinding.ControlUpdateMode = ControlUpdateMode.Never;
+            // var bindingAdded = false;
 
-            void SyncBindings()
-            {
-                if (WindowState == FormWindowState.Normal)
-                {
-                    if (bindingAdded) return;
-                    DataBindings.Add(locationBinding);
-                    DataBindings.Add(sizeBinding);
-                    bindingAdded = true;
-                }
-                else
-                {
-                    if (!bindingAdded) return;
-                    DataBindings.Remove(locationBinding);
-                    DataBindings.Remove(sizeBinding);
-                    bindingAdded = false;
-                }
-            }
+            // void SyncBindings()
+            // {
+                // if (WindowState == FormWindowState.Normal)
+                // {
+                    // if (bindingAdded) return;
+                    // DataBindings.Add(locationBinding);
+                    // DataBindings.Add(sizeBinding);
+                    // bindingAdded = true;
+                // }
+                // else
+                // {
+                    // if (!bindingAdded) return;
+                    // DataBindings.Remove(locationBinding);
+                    // DataBindings.Remove(sizeBinding);
+                    // bindingAdded = false;
+                // }
+            // }
 
-            Resize += (sender, args) => { SyncBindings(); };
-            HandleCreated += (sender, args) => Location = Properties.Settings.Default.WindowLocation;
-            HandleCreated += (sender, args) => SyncBindings();
+            // Resize += (sender, args) => { SyncBindings(); };
+            // HandleCreated += (sender, args) => Location = Properties.Settings.Default.WindowLocation;
+            // HandleCreated += (sender, args) => SyncBindings();
 
             _DateRegistration.Value = DateTime.Now.AddDays(-30.0);
             Text = _headText =

@@ -1,4 +1,5 @@
 ﻿﻿
+using System;
 using System.ComponentModel;
 using System.Windows.Forms;
 
@@ -36,7 +37,6 @@ namespace TLO.Forms {
         {
             System.ComponentModel.ComponentResourceManager resources =
                 new System.ComponentModel.ComponentResourceManager(typeof(SettingsForm));
-            this._btCheck = new System.Windows.Forms.Button();
             this._btCancel = new System.Windows.Forms.Button();
             this._btSave = new System.Windows.Forms.Button();
             this._tpCategories = new System.Windows.Forms.TabPage();
@@ -70,23 +70,16 @@ namespace TLO.Forms {
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this._btTorrentClientAdd = new System.Windows.Forms.Button();
             this._btTorrentClientDelete = new System.Windows.Forms.Button();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this._tcrbRemote = new System.Windows.Forms.RadioButton();
-            this._tcrbCurrent = new System.Windows.Forms.RadioButton();
-            this._tbTorrentClientHostIP = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this._tbTorrentClientUserPassword = new System.Windows.Forms.TextBox();
-            this._tbTorrentClientUserName = new System.Windows.Forms.TextBox();
-            this._tbTorrentClientPort = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
             this.dgwTorrentClients = new System.Windows.Forms.DataGridView();
             this.UID = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TorrentClientType = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.FolderName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this._cbTorrentClientType = new System.Windows.Forms.ComboBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this._tbTorrentClientName = new System.Windows.Forms.TextBox();
+            this.TorrentClientHost = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TorrentClientPort = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TorrentClientUsername = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TorrentClientPassword = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TorrentClientStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.TorrentClientRemove = new System.Windows.Forms.DataGridViewButtonColumn();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox10 = new System.Windows.Forms.GroupBox();
@@ -175,7 +168,6 @@ namespace TLO.Forms {
             ((System.ComponentModel.ISupportInitialize) (this.dgwCategories)).BeginInit();
             this.tbpTorrentClients.SuspendLayout();
             this.groupBox5.SuspendLayout();
-            this.groupBox3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize) (this.dgwTorrentClients)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -194,19 +186,6 @@ namespace TLO.Forms {
             this.tabPage1.SuspendLayout();
             this._tpAllCategories.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // _btCheck
-            // 
-            this._btCheck.Anchor =
-                ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom |
-                                                       System.Windows.Forms.AnchorStyles.Left)));
-            this._btCheck.Location = new System.Drawing.Point(5, 714);
-            this._btCheck.Name = "_btCheck";
-            this._btCheck.Size = new System.Drawing.Size(87, 27);
-            this._btCheck.TabIndex = 16;
-            this._btCheck.Text = "Проверить";
-            this._btCheck.UseVisualStyleBackColor = true;
-            this._btCheck.Click += new System.EventHandler(this.ClickButtons);
             // 
             // _btCancel
             // 
@@ -327,7 +306,7 @@ namespace TLO.Forms {
             this._cbIsSaveWebPage.AutoSize = true;
             this._cbIsSaveWebPage.Location = new System.Drawing.Point(10, 207);
             this._cbIsSaveWebPage.Name = "_cbIsSaveWebPage";
-            this._cbIsSaveWebPage.Size = new System.Drawing.Size(379, 19);
+            this._cbIsSaveWebPage.Size = new System.Drawing.Size(380, 19);
             this._cbIsSaveWebPage.TabIndex = 12;
             this._cbIsSaveWebPage.Text = "Сохранять web-страницы раздачи в подкаталог \"!!!Web-pages!!!\"";
             this._cbIsSaveWebPage.UseVisualStyleBackColor = true;
@@ -348,7 +327,7 @@ namespace TLO.Forms {
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(7, 72);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(292, 15);
+            this.label3.Size = new System.Drawing.Size(291, 15);
             this.label3.TabIndex = 10;
             this.label3.Text = "Торрент-клиент, куда требуется добавлять раздачи:";
             // 
@@ -413,7 +392,7 @@ namespace TLO.Forms {
             this.label16.ForeColor = System.Drawing.SystemColors.ControlDark;
             this.label16.Location = new System.Drawing.Point(7, 50);
             this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(393, 15);
+            this.label16.Size = new System.Drawing.Size(394, 15);
             this.label16.TabIndex = 2;
             this.label16.Text = "Остановка происходит при кол-ве сидов больше этого на 2 и больше";
             // 
@@ -571,15 +550,10 @@ namespace TLO.Forms {
                                                        System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox5.Controls.Add(this._btTorrentClientAdd);
             this.groupBox5.Controls.Add(this._btTorrentClientDelete);
-            this.groupBox5.Controls.Add(this.groupBox3);
             this.groupBox5.Controls.Add(this.dgwTorrentClients);
-            this.groupBox5.Controls.Add(this._cbTorrentClientType);
-            this.groupBox5.Controls.Add(this.label2);
-            this.groupBox5.Controls.Add(this.label1);
-            this.groupBox5.Controls.Add(this._tbTorrentClientName);
             this.groupBox5.Location = new System.Drawing.Point(9, 7);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(1120, 413);
+            this.groupBox5.Size = new System.Drawing.Size(1120, 671);
             this.groupBox5.TabIndex = 11;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Torrent-клиенты";
@@ -604,129 +578,31 @@ namespace TLO.Forms {
             this._btTorrentClientDelete.UseVisualStyleBackColor = true;
             this._btTorrentClientDelete.Click += new System.EventHandler(this.ClickButtons);
             // 
-            // groupBox3
-            // 
-            this.groupBox3.Controls.Add(this._tcrbRemote);
-            this.groupBox3.Controls.Add(this._tcrbCurrent);
-            this.groupBox3.Controls.Add(this._tbTorrentClientHostIP);
-            this.groupBox3.Controls.Add(this.label7);
-            this.groupBox3.Controls.Add(this.label6);
-            this.groupBox3.Controls.Add(this._tbTorrentClientUserPassword);
-            this.groupBox3.Controls.Add(this._tbTorrentClientUserName);
-            this.groupBox3.Controls.Add(this._tbTorrentClientPort);
-            this.groupBox3.Controls.Add(this.label5);
-            this.groupBox3.Location = new System.Drawing.Point(297, 113);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(742, 174);
-            this.groupBox3.TabIndex = 8;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Доступ к torrent-клиенту";
-            // 
-            // _tcrbRemote
-            // 
-            this._tcrbRemote.AutoSize = true;
-            this._tcrbRemote.Location = new System.Drawing.Point(10, 50);
-            this._tcrbRemote.Name = "_tcrbRemote";
-            this._tcrbRemote.Size = new System.Drawing.Size(225, 19);
-            this._tcrbRemote.TabIndex = 9;
-            this._tcrbRemote.Text = "На другом компьютере, его имя/IP: ";
-            this._tcrbRemote.UseVisualStyleBackColor = true;
-            this._tcrbRemote.CheckedChanged += new System.EventHandler(this._Focus_Enter);
-            // 
-            // _tcrbCurrent
-            // 
-            this._tcrbCurrent.AutoSize = true;
-            this._tcrbCurrent.Checked = true;
-            this._tcrbCurrent.Location = new System.Drawing.Point(10, 23);
-            this._tcrbCurrent.Name = "_tcrbCurrent";
-            this._tcrbCurrent.Size = new System.Drawing.Size(160, 19);
-            this._tcrbCurrent.TabIndex = 8;
-            this._tcrbCurrent.TabStop = true;
-            this._tcrbCurrent.Text = "На этом же компьютере";
-            this._tcrbCurrent.UseVisualStyleBackColor = true;
-            this._tcrbCurrent.CheckedChanged += new System.EventHandler(this._Focus_Enter);
-            // 
-            // _tbTorrentClientHostIP
-            // 
-            this._tbTorrentClientHostIP.Location = new System.Drawing.Point(264, 48);
-            this._tbTorrentClientHostIP.Name = "_tbTorrentClientHostIP";
-            this._tbTorrentClientHostIP.Size = new System.Drawing.Size(174, 23);
-            this._tbTorrentClientHostIP.TabIndex = 6;
-            this._tbTorrentClientHostIP.Enter += new System.EventHandler(this._Focus_Enter);
-            this._tbTorrentClientHostIP.Leave += new System.EventHandler(this._Focus_Enter);
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(7, 142);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(218, 15);
-            this.label7.TabIndex = 5;
-            this.label7.Text = "Пароль пользователя torrent-клиента:";
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(7, 112);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(200, 15);
-            this.label6.TabIndex = 4;
-            this.label6.Text = "Имя пользователя torrent-клиента:";
-            // 
-            // _tbTorrentClientUserPassword
-            // 
-            this._tbTorrentClientUserPassword.Location = new System.Drawing.Point(264, 138);
-            this._tbTorrentClientUserPassword.Name = "_tbTorrentClientUserPassword";
-            this._tbTorrentClientUserPassword.PasswordChar = '*';
-            this._tbTorrentClientUserPassword.Size = new System.Drawing.Size(174, 23);
-            this._tbTorrentClientUserPassword.TabIndex = 3;
-            this._tbTorrentClientUserPassword.Enter += new System.EventHandler(this._Focus_Enter);
-            this._tbTorrentClientUserPassword.Leave += new System.EventHandler(this._Focus_Enter);
-            // 
-            // _tbTorrentClientUserName
-            // 
-            this._tbTorrentClientUserName.Location = new System.Drawing.Point(264, 108);
-            this._tbTorrentClientUserName.Name = "_tbTorrentClientUserName";
-            this._tbTorrentClientUserName.Size = new System.Drawing.Size(174, 23);
-            this._tbTorrentClientUserName.TabIndex = 2;
-            this._tbTorrentClientUserName.Enter += new System.EventHandler(this._Focus_Enter);
-            this._tbTorrentClientUserName.Leave += new System.EventHandler(this._Focus_Enter);
-            // 
-            // _tbTorrentClientPort
-            // 
-            this._tbTorrentClientPort.Location = new System.Drawing.Point(264, 78);
-            this._tbTorrentClientPort.Name = "_tbTorrentClientPort";
-            this._tbTorrentClientPort.Size = new System.Drawing.Size(174, 23);
-            this._tbTorrentClientPort.TabIndex = 1;
-            this._tbTorrentClientPort.Enter += new System.EventHandler(this._Focus_Enter);
-            this._tbTorrentClientPort.Leave += new System.EventHandler(this._Focus_Enter);
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(7, 82);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(159, 15);
-            this.label5.TabIndex = 0;
-            this.label5.Text = "Порт Web/API-интерфейса:";
-            // 
             // dgwTorrentClients
             // 
             this.dgwTorrentClients.AllowUserToAddRows = false;
+            this.dgwTorrentClients.AllowUserToDeleteRows = false;
             this.dgwTorrentClients.Anchor =
                 ((System.Windows.Forms.AnchorStyles) (((System.Windows.Forms.AnchorStyles.Top |
                                                         System.Windows.Forms.AnchorStyles.Bottom) |
                                                        System.Windows.Forms.AnchorStyles.Left)));
+            this.dgwTorrentClients.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgwTorrentClients.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.dgwTorrentClients.ColumnHeadersHeightSizeMode =
                 System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgwTorrentClients.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[]
-                {this.UID, this.FolderName});
+            {
+                this.UID, this.TorrentClientType, this.FolderName, this.TorrentClientHost, this.TorrentClientPort,
+                this.TorrentClientUsername, this.TorrentClientPassword, this.TorrentClientStatus,
+                this.TorrentClientRemove
+            });
             this.dgwTorrentClients.Location = new System.Drawing.Point(7, 55);
             this.dgwTorrentClients.MultiSelect = false;
             this.dgwTorrentClients.Name = "dgwTorrentClients";
             this.dgwTorrentClients.RowHeadersVisible = false;
-            this.dgwTorrentClients.Size = new System.Drawing.Size(280, 351);
+            this.dgwTorrentClients.Size = new System.Drawing.Size(1107, 610);
             this.dgwTorrentClients.TabIndex = 0;
+            this.dgwTorrentClients.VirtualMode = true;
             this.dgwTorrentClients.SelectionChanged += new System.EventHandler(this.SelectionChanged);
             // 
             // UID
@@ -735,59 +611,57 @@ namespace TLO.Forms {
             this.UID.HeaderText = "UID";
             this.UID.Name = "UID";
             this.UID.ReadOnly = true;
-            this.UID.Visible = false;
+            // 
+            // TorrentClientType
+            // 
+            this.TorrentClientType.DataPropertyName = "Type";
+            this.TorrentClientType.HeaderText = "Тип";
+            this.TorrentClientType.Name = "TorrentClientType";
             // 
             // FolderName
             // 
-            this.FolderName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
             this.FolderName.DataPropertyName = "Name";
-            this.FolderName.HeaderText = "Настройки";
+            this.FolderName.HeaderText = "Имя";
+            this.FolderName.MinimumWidth = 100;
             this.FolderName.Name = "FolderName";
-            this.FolderName.ReadOnly = true;
             // 
-            // _cbTorrentClientType
+            // TorrentClientHost
             // 
-            this._cbTorrentClientType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this._cbTorrentClientType.FormattingEnabled = true;
-            this._cbTorrentClientType.Items.AddRange(new object[]
-                {"uTorrent", "Transmission", "Vuze (Vuze Web Remote)", "qBittorrent 4.1+"});
-            this._cbTorrentClientType.Location = new System.Drawing.Point(561, 82);
-            this._cbTorrentClientType.Name = "_cbTorrentClientType";
-            this._cbTorrentClientType.Size = new System.Drawing.Size(140, 23);
-            this._cbTorrentClientType.TabIndex = 6;
-            this._cbTorrentClientType.Enter += new System.EventHandler(this._Focus_Enter);
-            this._cbTorrentClientType.Leave += new System.EventHandler(this._Focus_Enter);
+            this.TorrentClientHost.DataPropertyName = "ServerName";
+            this.TorrentClientHost.HeaderText = "Хост";
+            this.TorrentClientHost.Name = "TorrentClientHost";
             // 
-            // label2
+            // TorrentClientPort
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(294, 85);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(116, 15);
-            this.label2.TabIndex = 7;
-            this.label2.Text = "Тип torrent-клиента";
+            this.TorrentClientPort.DataPropertyName = "ServerPort";
+            this.TorrentClientPort.HeaderText = "Порт";
+            this.TorrentClientPort.Name = "TorrentClientPort";
             // 
-            // label1
+            // TorrentClientUsername
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(294, 55);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(247, 15);
-            this.label1.TabIndex = 5;
-            this.label1.Text = "Название группы настроек torrent-клиента:";
+            this.TorrentClientUsername.DataPropertyName = "UserName";
+            this.TorrentClientUsername.HeaderText = "Логин";
+            this.TorrentClientUsername.Name = "TorrentClientUsername";
             // 
-            // _tbTorrentClientName
+            // TorrentClientPassword
             // 
-            this._tbTorrentClientName.Anchor =
-                ((System.Windows.Forms.AnchorStyles) (((System.Windows.Forms.AnchorStyles.Top |
-                                                        System.Windows.Forms.AnchorStyles.Left) |
-                                                       System.Windows.Forms.AnchorStyles.Right)));
-            this._tbTorrentClientName.Location = new System.Drawing.Point(561, 52);
-            this._tbTorrentClientName.Name = "_tbTorrentClientName";
-            this._tbTorrentClientName.Size = new System.Drawing.Size(551, 23);
-            this._tbTorrentClientName.TabIndex = 4;
-            this._tbTorrentClientName.Enter += new System.EventHandler(this._Focus_Enter);
-            this._tbTorrentClientName.Leave += new System.EventHandler(this._Focus_Enter);
+            this.TorrentClientPassword.HeaderText = "Пароль";
+            this.TorrentClientPassword.Name = "TorrentClientPassword";
+            // 
+            // TorrentClientStatus
+            // 
+            this.TorrentClientStatus.HeaderText = "Статус";
+            this.TorrentClientStatus.Name = "TorrentClientStatus";
+            this.TorrentClientStatus.ReadOnly = true;
+            // 
+            // TorrentClientRemove
+            // 
+            this.TorrentClientRemove.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.TorrentClientRemove.HeaderText = "Действие";
+            this.TorrentClientRemove.Name = "TorrentClientRemove";
+            this.TorrentClientRemove.Text = "X";
+            this.TorrentClientRemove.ToolTipText = "Удалить этот торрент-клиент";
+            this.TorrentClientRemove.UseColumnTextForButtonValue = true;
             // 
             // tabControl1
             // 
@@ -1042,7 +916,7 @@ namespace TLO.Forms {
             this.label9.AutoSize = true;
             this.label9.Location = new System.Drawing.Point(7, 24);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(465, 15);
+            this.label9.Size = new System.Drawing.Size(467, 15);
             this.label9.TabIndex = 9;
             this.label9.Text = "В отчете о сидируемых раздачах отображаются раздачи с кол-вом сидов не более:";
             // 
@@ -1144,7 +1018,7 @@ namespace TLO.Forms {
             this._appIsNotSaveStatistics.AutoSize = true;
             this._appIsNotSaveStatistics.Location = new System.Drawing.Point(7, 53);
             this._appIsNotSaveStatistics.Name = "_appIsNotSaveStatistics";
-            this._appIsNotSaveStatistics.Size = new System.Drawing.Size(313, 19);
+            this._appIsNotSaveStatistics.Size = new System.Drawing.Size(315, 19);
             this._appIsNotSaveStatistics.TabIndex = 16;
             this._appIsNotSaveStatistics.Text = "Не сохранять статистику о кол-ве сидов на раздачах";
             this._appIsNotSaveStatistics.UseVisualStyleBackColor = true;
@@ -1386,7 +1260,7 @@ namespace TLO.Forms {
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(
                 new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1125, 565);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1086, 530);
             this.tableLayoutPanel1.TabIndex = 59;
             // 
             // label17
@@ -1402,27 +1276,27 @@ namespace TLO.Forms {
             // 
             this.tableLayoutPanel1.SetColumnSpan(this.categoryReportTemplate, 3);
             this.categoryReportTemplate.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.categoryReportTemplate.Location = new System.Drawing.Point(3, 470);
+            this.categoryReportTemplate.Location = new System.Drawing.Point(3, 442);
             this.categoryReportTemplate.Multiline = true;
             this.categoryReportTemplate.Name = "categoryReportTemplate";
             this.categoryReportTemplate.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.categoryReportTemplate.Size = new System.Drawing.Size(1119, 92);
+            this.categoryReportTemplate.Size = new System.Drawing.Size(1080, 85);
             this.categoryReportTemplate.TabIndex = 56;
             // 
             // reportHeaderTemplate
             // 
             this.reportHeaderTemplate.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.reportHeaderTemplate.Location = new System.Drawing.Point(3, 131);
+            this.reportHeaderTemplate.Location = new System.Drawing.Point(3, 124);
             this.reportHeaderTemplate.Multiline = true;
             this.reportHeaderTemplate.Name = "reportHeaderTemplate";
             this.reportHeaderTemplate.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.reportHeaderTemplate.Size = new System.Drawing.Size(368, 92);
+            this.reportHeaderTemplate.Size = new System.Drawing.Size(355, 85);
             this.reportHeaderTemplate.TabIndex = 58;
             // 
             // label44
             // 
             this.label44.AutoSize = true;
-            this.label44.Location = new System.Drawing.Point(3, 452);
+            this.label44.Location = new System.Drawing.Point(3, 424);
             this.label44.Name = "label44";
             this.label44.Size = new System.Drawing.Size(125, 15);
             this.label44.TabIndex = 55;
@@ -1436,24 +1310,24 @@ namespace TLO.Forms {
             this._appReportLine.Multiline = true;
             this._appReportLine.Name = "_appReportLine";
             this._appReportLine.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._appReportLine.Size = new System.Drawing.Size(1119, 92);
+            this._appReportLine.Size = new System.Drawing.Size(1080, 85);
             this._appReportLine.TabIndex = 33;
             // 
             // summaryReportTemplate
             // 
             this.tableLayoutPanel1.SetColumnSpan(this.summaryReportTemplate, 3);
             this.summaryReportTemplate.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.summaryReportTemplate.Location = new System.Drawing.Point(3, 357);
+            this.summaryReportTemplate.Location = new System.Drawing.Point(3, 336);
             this.summaryReportTemplate.Multiline = true;
             this.summaryReportTemplate.Name = "summaryReportTemplate";
             this.summaryReportTemplate.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.summaryReportTemplate.Size = new System.Drawing.Size(1119, 92);
+            this.summaryReportTemplate.Size = new System.Drawing.Size(1080, 85);
             this.summaryReportTemplate.TabIndex = 54;
             // 
             // label45
             // 
             this.label45.AutoSize = true;
-            this.label45.Location = new System.Drawing.Point(752, 113);
+            this.label45.Location = new System.Drawing.Point(726, 106);
             this.label45.Name = "label45";
             this.label45.Size = new System.Drawing.Size(256, 15);
             this.label45.TabIndex = 57;
@@ -1462,7 +1336,7 @@ namespace TLO.Forms {
             // label43
             // 
             this.label43.AutoSize = true;
-            this.label43.Location = new System.Drawing.Point(3, 339);
+            this.label43.Location = new System.Drawing.Point(3, 318);
             this.label43.Name = "label43";
             this.label43.Size = new System.Drawing.Size(93, 15);
             this.label43.TabIndex = 53;
@@ -1471,16 +1345,16 @@ namespace TLO.Forms {
             // label30
             // 
             this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(3, 113);
+            this.label30.Location = new System.Drawing.Point(3, 106);
             this.label30.Name = "label30";
-            this.label30.Size = new System.Drawing.Size(153, 15);
+            this.label30.Size = new System.Drawing.Size(154, 15);
             this.label30.TabIndex = 42;
             this.label30.Text = "Шапка списка хранителей:";
             // 
             // label31
             // 
             this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(377, 113);
+            this.label31.Location = new System.Drawing.Point(364, 106);
             this.label31.Name = "label31";
             this.label31.Size = new System.Drawing.Size(254, 15);
             this.label31.TabIndex = 43;
@@ -1489,27 +1363,27 @@ namespace TLO.Forms {
             // _appReportTop1
             // 
             this._appReportTop1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._appReportTop1.Location = new System.Drawing.Point(377, 131);
+            this._appReportTop1.Location = new System.Drawing.Point(364, 124);
             this._appReportTop1.Multiline = true;
             this._appReportTop1.Name = "_appReportTop1";
             this._appReportTop1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._appReportTop1.Size = new System.Drawing.Size(369, 92);
+            this._appReportTop1.Size = new System.Drawing.Size(356, 85);
             this._appReportTop1.TabIndex = 40;
             // 
             // _appReportTop2
             // 
             this._appReportTop2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._appReportTop2.Location = new System.Drawing.Point(752, 131);
+            this._appReportTop2.Location = new System.Drawing.Point(726, 124);
             this._appReportTop2.Multiline = true;
             this._appReportTop2.Name = "_appReportTop2";
             this._appReportTop2.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._appReportTop2.Size = new System.Drawing.Size(370, 92);
+            this._appReportTop2.Size = new System.Drawing.Size(357, 85);
             this._appReportTop2.TabIndex = 41;
             // 
             // label32
             // 
             this.label32.AutoSize = true;
-            this.label32.Location = new System.Drawing.Point(3, 226);
+            this.label32.Location = new System.Drawing.Point(3, 212);
             this.label32.Name = "label32";
             this.label32.Size = new System.Drawing.Size(137, 15);
             this.label32.TabIndex = 45;
@@ -1519,11 +1393,11 @@ namespace TLO.Forms {
             // 
             this.tableLayoutPanel1.SetColumnSpan(this._appReportBottom, 3);
             this._appReportBottom.Dock = System.Windows.Forms.DockStyle.Fill;
-            this._appReportBottom.Location = new System.Drawing.Point(3, 244);
+            this._appReportBottom.Location = new System.Drawing.Point(3, 230);
             this._appReportBottom.Multiline = true;
             this._appReportBottom.Name = "_appReportBottom";
             this._appReportBottom.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._appReportBottom.Size = new System.Drawing.Size(1119, 92);
+            this._appReportBottom.Size = new System.Drawing.Size(1080, 85);
             this._appReportBottom.TabIndex = 44;
             // 
             // label39
@@ -1548,7 +1422,7 @@ namespace TLO.Forms {
             this.label38.ForeColor = System.Drawing.SystemColors.ControlDark;
             this.label38.Location = new System.Drawing.Point(556, 608);
             this.label38.Name = "label38";
-            this.label38.Size = new System.Drawing.Size(258, 15);
+            this.label38.Size = new System.Drawing.Size(257, 15);
             this.label38.TabIndex = 51;
             this.label38.Text = "%%NumberTopicsLast%% - Последний номер";
             // 
@@ -1561,7 +1435,7 @@ namespace TLO.Forms {
             this.label37.ForeColor = System.Drawing.SystemColors.ControlDark;
             this.label37.Location = new System.Drawing.Point(556, 593);
             this.label37.Name = "label37";
-            this.label37.Size = new System.Drawing.Size(261, 15);
+            this.label37.Size = new System.Drawing.Size(260, 15);
             this.label37.TabIndex = 50;
             this.label37.Text = "%%NumberTopicsFirst%% - Начальный номер";
             // 
@@ -1574,7 +1448,7 @@ namespace TLO.Forms {
             this.label36.ForeColor = System.Drawing.SystemColors.ControlDark;
             this.label36.Location = new System.Drawing.Point(556, 578);
             this.label36.Name = "label36";
-            this.label36.Size = new System.Drawing.Size(221, 15);
+            this.label36.Size = new System.Drawing.Size(220, 15);
             this.label36.TabIndex = 49;
             this.label36.Text = "%%Top1%% - Вписать первый шаблон";
             // 
@@ -1600,7 +1474,7 @@ namespace TLO.Forms {
             this.label34.ForeColor = System.Drawing.SystemColors.ControlDark;
             this.label34.Location = new System.Drawing.Point(276, 593);
             this.label34.Name = "label34";
-            this.label34.Size = new System.Drawing.Size(204, 15);
+            this.label34.Size = new System.Drawing.Size(203, 15);
             this.label34.TabIndex = 47;
             this.label34.Text = "%%CountTopics%% - Кол-во раздач";
             // 
@@ -1748,7 +1622,6 @@ namespace TLO.Forms {
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1148, 749);
             this.Controls.Add(this._btCancel);
-            this.Controls.Add(this._btCheck);
             this.Controls.Add(this._btSave);
             this.Controls.Add(this.tabControl1);
             this.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
@@ -1766,9 +1639,6 @@ namespace TLO.Forms {
             ((System.ComponentModel.ISupportInitialize) (this.dgwCategories)).EndInit();
             this.tbpTorrentClients.ResumeLayout(false);
             this.groupBox5.ResumeLayout(false);
-            this.groupBox5.PerformLayout();
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize) (this.dgwTorrentClients)).EndInit();
             this.tabControl1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
@@ -1838,8 +1708,6 @@ namespace TLO.Forms {
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.GroupBox groupBox8;
         private System.Windows.Forms.CheckBox _appIsNotSaveStatistics;
-        private System.Windows.Forms.RadioButton _tcrbCurrent;
-        private System.Windows.Forms.RadioButton _tcrbRemote;
         private System.Windows.Forms.Label label23;
         private System.Windows.Forms.Label label21;
         private System.Windows.Forms.NumericUpDown _appLogLevel;
@@ -1869,21 +1737,9 @@ namespace TLO.Forms {
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ComboBox _CategoriesCbTorrentClient;
         private System.Windows.Forms.TabControl tabControl1;
-        private System.Windows.Forms.TextBox _tbTorrentClientName;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.ComboBox _cbTorrentClientType;
         private System.Windows.Forms.DataGridViewTextBoxColumn FolderName;
         private System.Windows.Forms.DataGridViewTextBoxColumn UID;
         private System.Windows.Forms.DataGridView dgwTorrentClients;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.TextBox _tbTorrentClientPort;
-        private System.Windows.Forms.TextBox _tbTorrentClientUserName;
-        private System.Windows.Forms.TextBox _tbTorrentClientUserPassword;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.TextBox _tbTorrentClientHostIP;
-        private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Button _btTorrentClientDelete;
         private System.Windows.Forms.Button _btTorrentClientAdd;
         private System.Windows.Forms.GroupBox groupBox5;
@@ -1911,7 +1767,6 @@ namespace TLO.Forms {
         private System.Windows.Forms.TabPage _tpCategories;
         private System.Windows.Forms.Button _btSave;
         private System.Windows.Forms.Button _btCancel;
-        private System.Windows.Forms.Button _btCheck;
         private System.Windows.Forms.TextBox categoryReportTemplate;
         private System.Windows.Forms.Label label45;
         private System.Windows.Forms.TextBox reportHeaderTemplate;
@@ -1932,5 +1787,12 @@ namespace TLO.Forms {
         private System.Windows.Forms.CheckBox closeToTray;
         private System.Windows.Forms.CheckBox showTrayIcon;
         private System.Windows.Forms.GroupBox groupBox10;
+        private System.Windows.Forms.DataGridViewButtonColumn TorrentClientRemove;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TorrentClientStatus;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TorrentClientPassword;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TorrentClientUsername;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TorrentClientPort;
+        private System.Windows.Forms.DataGridViewTextBoxColumn TorrentClientHost;
+        private System.Windows.Forms.DataGridViewComboBoxColumn TorrentClientType;
     }
 }

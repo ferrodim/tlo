@@ -1,10 +1,12 @@
-﻿﻿using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TLO.Info;
 
 namespace TLO.Clients
 {
     internal interface ITorrentClient
     {
+        string Id { get; }
+
         List<TopicInfo> GetAllTorrentHash();
 
         IEnumerable<string> GetFiles(TopicInfo topic);
