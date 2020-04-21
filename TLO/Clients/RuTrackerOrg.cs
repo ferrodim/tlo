@@ -1,10 +1,12 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
+using AngleSharp.Dom;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
@@ -353,85 +355,55 @@ namespace TLO.Clients
             dictionary = new Dictionary<string, Tuple<int, List<int>>>();
             var empty = string.Empty;
             var num = 0;
+
+            var parser = new AngleSharp.Html.Parser.HtmlParser();
             string str1;
             do
             {
-                empty = string.Empty;
                 str1 = DownloadWebPage(string.Format("https://{2}/forum/viewtopic.php?t={0}{1}",
                     topicid, num == 0 ? "" : "&start=" + num, Settings.Current.HostRuTrackerOrg));
                 if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
                 {
-                    Thread.Sleep(500);
-                    str1 = DownloadWebPage(
-                        $"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?p={(object) topicid}");
-                    if (str1.Contains("<div class=\"mrg_16\">Тема не найдена</div>"))
-                        return dictionary;
-                    var s = string.Join("\r\n", str1.Split('\r', '\n').Where(x => x.Contains("id=\"topic-title\"")))
-                        .Split(new char[4]
-                        {
-                            '"',
-                            '<',
-                            '>',
-                            ' '
-                        }, StringSplitOptions.RemoveEmptyEntries)
-                        .Where(x => x.Contains($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t="))
-                        .Select(x =>
-                            x.Replace($"https://{Settings.Current.HostRuTrackerOrg}/forum/viewtopic.php?t=", ""))
-                        .FirstOrDefault();
-                    if (!string.IsNullOrWhiteSpace(s))
-                    {
-                        topicid = int.Parse(s);
-                        goto label_18;
-                    }
+                    goto label_18;
                 }
 
-                var array = str1.Split(new char[2]
+                var document = parser.ParseDocument(str1);
+                var posts = document.QuerySelectorAll("table#topic_main > tbody");
+                foreach (var post in posts)
                 {
-                    '\r',
-                    '\n'
-                }, StringSplitOptions.RemoveEmptyEntries).Where(x =>
-                {
-                    if (x.Contains("\t\t<a href=\"#\" onclick=\"return false;\">"))
-                        return true;
-                    if (x.Contains("viewtopic.php?t=") && x.Contains("class=\"postLink\""))
-                        return !x.Contains("<div");
-                    return false;
-                }).ToArray();
-                var keeperName = string.Empty;
-                foreach (var str2 in array)
-                    if (str2.Contains("\t\t<a href=\"#\" onclick=\"return false;\">"))
+                    if (!post.ClassList.Contains("row1") && !post.ClassList.Contains("row2"))
                     {
-                        keeperName = str2.Replace("\t\t<a href=\"#\" onclick=\"return false;\">", "")
-                            .Replace("</a>", "").Replace("<wbr>", "").Trim();
+                        continue;
                     }
-                    else
+
+                    var keeperName = post.QuerySelector("td.poster_info > p.nick > a").Text().Trim();
+                    if (!dictionary.ContainsKey(keeperName))
                     {
-                        if (!dictionary.ContainsKey(keeperName))
-                            dictionary.Add(keeperName, new Tuple<int, List<int>>(categoryId, new List<int>()));
-                        var str3 = str2.Split(new char[6]
-                            {
-                                '"',
-                                '<',
-                                '>',
-                                ' ',
-                                '#',
-                                '&'
-                            }, StringSplitOptions.RemoveEmptyEntries)
-                            .Where(x => x.Contains("viewtopic.php?t=")).FirstOrDefault();
-                        if (!string.IsNullOrWhiteSpace(str3))
+                        dictionary.Add(keeperName, new Tuple<int, List<int>>(categoryId, new List<int>()));
+                    }
+
+                    var links = post.QuerySelectorAll("td.message div.post_body a");
+                    foreach (var link in links)
+                    {
+                        var url = link.GetAttribute("href").Trim();
+                        var match = new Regex(@"viewtopic.php\?t=([0-9]+)$").Match(url);
+                        if (!match.Success)
                         {
-                            var strArray = str3.Split('=');
-                            if (strArray.Length >= 2)
-                                try
-                                {
-                                    dictionary[keeperName].Item2.Add(int.Parse(strArray[1]));
-                                }
-                                catch (Exception ex)
-                                {
-                                    _logger.Warn(topicid + "\t" + strArray[1] + "\t" + ex.Message);
-                                }
+                            continue;
+                        }
+
+
+                        var topicId = match.Groups[1].Value;
+                        try
+                        {
+                            dictionary[keeperName].Item2.Add(int.Parse(topicId));
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.Warn(topicid + "\t" + topicId + "\t" + ex.Message);
                         }
                     }
+                }
 
                 num += 30;
                 label_18: ;
@@ -675,7 +647,8 @@ namespace TLO.Clients
         public void SavePage(string topicId, string folder)
         {
             var str =
-                new TloWebClient(enableProxy: true).DownloadString(string.Format("https://rutracker.org/forum/viewtopic.php?t={0}",
+                new TloWebClient(enableProxy: true).DownloadString(string.Format(
+                    "https://rutracker.org/forum/viewtopic.php?t={0}",
                     topicId));
             if (str.Contains("Тема не найдена"))
                 return;
